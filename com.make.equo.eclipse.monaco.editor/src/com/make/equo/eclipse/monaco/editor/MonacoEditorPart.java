@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Hashtable;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspace;
@@ -35,12 +36,18 @@ import org.eclipse.ui.part.FileEditorInput;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.annotations.Reference;
 
 import com.make.equo.monaco.EquoMonacoEditor;
+import com.make.equo.monaco.EquoMonacoEditorContribution;
 import com.make.equo.monaco.EquoMonacoEditorWidgetBuilder;
+import com.make.equo.monaco.EquoMonacoStandaloneEditor;
 import com.make.equo.ws.api.IEquoRunnable;
 
 public class MonacoEditorPart extends EditorPart {
+
+	@Reference
+	private EquoMonacoEditorWidgetBuilder monacoBuilder;
 
 	private volatile boolean isDirty = false;
 
@@ -157,6 +164,10 @@ public class MonacoEditorPart extends EditorPart {
 				try {
 					BundleContext bndContext = FrameworkUtil.getBundle(EquoMonacoEditorWidgetBuilder.class)
 							.getBundleContext();
+					EquoMonacoEditorWidgetBuilder i = new EquoMonacoEditorWidgetBuilder();    // the service implementation
+					Hashtable props = new Hashtable();
+					props.put("description", "This an long value");
+					bndContext.registerService(EquoMonacoEditorWidgetBuilder.class.getName(), i, props);
 					ServiceReference<EquoMonacoEditorWidgetBuilder> svcReference = bndContext
 							.getServiceReference(EquoMonacoEditorWidgetBuilder.class);
 					EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
@@ -170,6 +181,7 @@ public class MonacoEditorPart extends EditorPart {
 					createActions();
 					activateActions();
 				} catch (Exception e) {
+					e.printStackTrace();
 					System.out.println("Couldn't retrieve Monaco Editor service");
 				}
 			} catch (CoreException | IOException e) {

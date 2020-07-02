@@ -1,4 +1,5 @@
 Bundle-Version: ${version}.${tstamp}
+Bundle-ActivationPolicy: lazy
 Import-Package: *
 Export-Package: \
     com.make.equo.monaco
