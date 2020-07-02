@@ -42,6 +42,7 @@ import com.make.equo.monaco.EquoMonacoEditor;
 import com.make.equo.monaco.EquoMonacoEditorContribution;
 import com.make.equo.monaco.EquoMonacoEditorWidgetBuilder;
 import com.make.equo.monaco.EquoMonacoStandaloneEditor;
+import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
 
 public class MonacoEditorPart extends EditorPart {
@@ -168,8 +169,21 @@ public class MonacoEditorPart extends EditorPart {
 					Hashtable props = new Hashtable();
 					props.put("description", "This an long value");
 					bndContext.registerService(EquoMonacoEditorWidgetBuilder.class.getName(), i, props);
+
+					
+					@SuppressWarnings("unchecked")
+					ServiceReference<IEquoServer> serviceReference = (ServiceReference<IEquoServer>) bndContext
+							.getServiceReference(IEquoServer.class.getName());
+					if (serviceReference != null) {
+						IEquoServer equoServer = bndContext.getService(serviceReference);
+					}
+
 					ServiceReference<EquoMonacoEditorWidgetBuilder> svcReference = bndContext
 							.getServiceReference(EquoMonacoEditorWidgetBuilder.class);
+                    if (serviceReference != null) {
+						IEquoServer equoServer = bndContext.getService(serviceReference);
+					}
+
 					EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
 					editor = builder.withParent(parent).withStyle(parent.getStyle()).withContents(textContent)
 							.withFileName(fileInput.getURI().toString()).create();
