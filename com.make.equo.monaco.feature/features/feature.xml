@@ -21,13 +21,6 @@
          id="com.make.equo.eclipse.monaco.editor"
          download-size="0"
          install-size="0"
-         version="0.1.6"
-         unpack="false"/>
-
-   <plugin
-         id="com.make.equo.server.offline.provider"
-         download-size="0"
-         install-size="0"
          version="0.0.0"
          unpack="false"/>
 
