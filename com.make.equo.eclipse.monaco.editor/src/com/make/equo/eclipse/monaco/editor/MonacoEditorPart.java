@@ -180,9 +180,6 @@ public class MonacoEditorPart extends EditorPart {
 
 					ServiceReference<EquoMonacoEditorWidgetBuilder> svcReference = bndContext
 							.getServiceReference(EquoMonacoEditorWidgetBuilder.class);
-                    if (serviceReference != null) {
-						IEquoServer equoServer = bndContext.getService(serviceReference);
-					}
 
 					EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
 					editor = builder.withParent(parent).withStyle(parent.getStyle()).withContents(textContent)
