@@ -3,7 +3,7 @@ Bundle-Version: ${version}.${tstamp}
 Bundle-SymbolicName: com.make.equo.eclipse.monaco.editor;singleton:=true
 Private-Package: com.make.equo.eclipse.monaco.editor
 Import-Package: com.make.equo.monaco,\
-	*
+    *
 -buildpath: \
 	org.eclipse.ui,\
 	org.eclipse.ui.ide,\
@@ -36,6 +36,7 @@ Import-Package: com.make.equo.monaco,\
 	org.eclipse.ui.ide.application,\
 	org.eclipse.ui.ide.application.source,\
 	org.eclipse.ui.ide.source,\
+	org.eclipse.core.contenttype,\
 	org.eclipse.core.resources,\
 	org.eclipse.core.resources.source,\
 	org.eclipse.core.commands,\
@@ -45,7 +46,9 @@ Import-Package: com.make.equo.monaco,\
 	org.eclipse.osgi,\
 	org.eclipse.text,\
 	com.make.equo.server.api,\
-	osgi.cmpn
+	osgi.cmpn,\
+	org.eclipse.lsp4e,\
+	org.eclipse.lsp4j
 -includeresource: resources/
 -runbundles: \
 	ch.qos.logback.classic;version='[1.1.2,1.1.3)',\
