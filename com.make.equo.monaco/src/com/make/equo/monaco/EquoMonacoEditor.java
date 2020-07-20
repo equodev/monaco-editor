@@ -105,7 +105,7 @@ public class EquoMonacoEditor {
 	}
 
 	protected void handleCreateEditor(String contents, String fileName) {
-		new Thread(() -> lspProxy.startServer()).start();
+//		new Thread(() -> lspProxy.startServer()).start();
 		Map<String, String> editorData = new HashMap<String, String>();
 		editorData.put("text", contents);
 		editorData.put("name", fileName);

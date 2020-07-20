@@ -2,9 +2,15 @@ package com.make.equo.eclipse.monaco.editor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Hashtable;
 
 import org.eclipse.core.resources.IFile;
@@ -14,10 +20,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.window.Window;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.window.Window;
+import org.eclipse.lsp4e.LanguageServerWrapper;
+import org.eclipse.lsp4e.LanguageServersRegistry;
+import org.eclipse.lsp4e.LanguageServiceAccessor;
+import org.eclipse.lsp4e.server.StreamConnectionProvider;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.widgets.Composite;
@@ -33,15 +43,14 @@ import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.dialogs.SaveAsDialog;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Reference;
 
 import com.make.equo.monaco.EquoMonacoEditor;
-import com.make.equo.monaco.EquoMonacoEditorContribution;
 import com.make.equo.monaco.EquoMonacoEditorWidgetBuilder;
-import com.make.equo.monaco.EquoMonacoStandaloneEditor;
 import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
 
@@ -151,6 +160,8 @@ public class MonacoEditorPart extends EditorPart {
 		if (input instanceof FileEditorInput) {
 			FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
+			EquoMonacoEditor.addLspServer(Collections.emptyList(), Collections.singleton("xml"));
+			lspStuffs(fileInput);
 
 			try (InputStream contents = fileInput.getFile().getContents()) {
 				int singleByte;
@@ -165,12 +176,11 @@ public class MonacoEditorPart extends EditorPart {
 				try {
 					BundleContext bndContext = FrameworkUtil.getBundle(EquoMonacoEditorWidgetBuilder.class)
 							.getBundleContext();
-					EquoMonacoEditorWidgetBuilder i = new EquoMonacoEditorWidgetBuilder();    // the service implementation
+					EquoMonacoEditorWidgetBuilder i = new EquoMonacoEditorWidgetBuilder(); // the service implementation
 					Hashtable props = new Hashtable();
 					props.put("description", "This an long value");
 					bndContext.registerService(EquoMonacoEditorWidgetBuilder.class.getName(), i, props);
 
-					
 					@SuppressWarnings("unchecked")
 					ServiceReference<IEquoServer> serviceReference = (ServiceReference<IEquoServer>) bndContext
 							.getServiceReference(IEquoServer.class.getName());
@@ -202,6 +212,62 @@ public class MonacoEditorPart extends EditorPart {
 
 		}
 
+	}
+
+	private void lspStuffs(FileEditorInput fileInput) {
+		try {
+//				BundleContext ctx = FrameworkUtil.getBundle(LanguageServiceAccessor.class)
+//						.getBundleContext();
+//				for (Bundle bun: ctx.getBundles()) {
+//					System.out.println(bun.getLocation());
+//				}
+			Collection<LanguageServerWrapper> wrappers = LanguageServiceAccessor.getLSWrappers(fileInput.getFile(),
+					null);
+			if (!wrappers.isEmpty()) {
+				LanguageServerWrapper lspServer = wrappers.iterator().next();
+				Field field = lspServer.getClass().getDeclaredField("lspStreamProvider");
+				field.setAccessible(true);
+				StreamConnectionProvider value = (StreamConnectionProvider) field.get(lspServer);
+				value.stop();
+				value.start();
+				InputStream streamIn = value.getInputStream();
+				OutputStream streamOut = value.getOutputStream();
+				ProcessBuilder processBuilder = new ProcessBuilder("node",
+						"/home/lean/equo-framework-master/ws/framework/com.make.equo.monaco/resources/server.js");
+				try {
+					Process process = processBuilder.start();
+					final InputStream inputProxy = process.getInputStream();
+					final OutputStream outputProxy = process.getOutputStream();
+					new Thread(() -> {
+						try {
+							while (true) {
+								int read = inputProxy.read();
+								streamOut.write(read);
+								streamOut.flush();
+							}
+						} catch (IOException e) {
+								e.printStackTrace();
+						}
+
+					}).start();
+					new Thread(() -> {
+						try {
+							while (true) {
+								final int read = streamIn.read();
+								outputProxy.write(read);
+								outputProxy.flush();
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}).start();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void editorConfigs() {

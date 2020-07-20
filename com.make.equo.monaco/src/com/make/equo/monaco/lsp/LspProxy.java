@@ -55,7 +55,7 @@ public class LspProxy {
 	}
 
 	public int getPort() {
-		return proxyPort;
+		return 3000;
 	}
 
 	private String formatServerName(String name) {
