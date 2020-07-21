@@ -30,7 +30,6 @@ public class IndividualLspProxy extends LspProxy {
 			return;
 		}
 		try {
-			streamConnectionProvider.stop();
 			streamConnectionProvider.start();
 			InputStream streamIn = streamConnectionProvider.getInputStream();
 			OutputStream streamOut = streamConnectionProvider.getOutputStream();
@@ -44,7 +43,7 @@ public class IndividualLspProxy extends LspProxy {
 						streamOut.write(read);
 						streamOut.flush();
 					}
-				} catch (Exception e) {
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 
@@ -57,7 +56,7 @@ public class IndividualLspProxy extends LspProxy {
 						outputProxy.write(read);
 						outputProxy.flush();
 					}
-				} catch (Exception e) {
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			});
@@ -76,6 +75,19 @@ public class IndividualLspProxy extends LspProxy {
 			e.printStackTrace();
 			return;
 		}
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public void stopServer() {
+		if (redirect1 != null)
+			redirect1.stop();
+		if (redirect2 != null) {
+			redirect2.stop();
+		}
+		if (streamConnectionProvider != null)
+			streamConnectionProvider.stop();
+		super.stopServer();
 	}
 
 }

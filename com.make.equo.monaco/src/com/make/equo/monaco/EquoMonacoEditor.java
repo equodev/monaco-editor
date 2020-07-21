@@ -95,9 +95,13 @@ public class EquoMonacoEditor {
 	}
 
 	protected void createEditor(String contents, String fileName, LspProxy lsp) {
-		this.lspProxy = lsp;
-		equoEventHandler.on("_createEditor",
-				(JsonObject payload) -> handleCreateEditor(contents, fileName, "ws://127.0.0.1:" + lsp.getPort()));
+		String lspPathAux = null;
+		if (lsp != null) {
+			this.lspProxy = lsp;
+			lspPathAux = "ws://127.0.0.1:" + lsp.getPort();
+		}
+		final String lspPath = lspPathAux;
+		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(contents, fileName, lspPath));
 	}
 
 	protected String getLspServerForFile(String fileName) {
@@ -112,7 +116,10 @@ public class EquoMonacoEditor {
 	protected void handleCreateEditor(String contents, String fileName, String fixedLspPath) {
 		String lspPath = (fixedLspPath != null) ? fixedLspPath : getLspServerForFile(fileName);
 		if (lspPath != null) {
-			new Thread(() -> lspProxy.startServer()).start();
+			try {
+				lspProxy.startServer();
+			} catch (Exception e) {
+			}
 		}
 		Map<String, String> editorData = new HashMap<String, String>();
 		editorData.put("text", contents);
