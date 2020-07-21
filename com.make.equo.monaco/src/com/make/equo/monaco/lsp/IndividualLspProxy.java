@@ -4,13 +4,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import org.eclipse.lsp4e.LanguageServerWrapper;
+import org.eclipse.lsp4e.LaunchConfigurationStreamProvider;
+import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 import org.eclipse.lsp4e.server.StreamConnectionProvider;
+import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.debug.core.model.RuntimeProcess;
 
 public class IndividualLspProxy extends LspProxy {
 
 	private StreamConnectionProvider streamConnectionProvider;
+	private Process process;
 	private Thread redirect1 = null;
 	private Thread redirect2 = null;
 
@@ -31,6 +37,8 @@ public class IndividualLspProxy extends LspProxy {
 		}
 		try {
 			streamConnectionProvider.start();
+			this.process = getProcessFromStreamConnectionProvider();
+
 			InputStream streamIn = streamConnectionProvider.getInputStream();
 			OutputStream streamOut = streamConnectionProvider.getOutputStream();
 			Process process = getProcess();
@@ -66,6 +74,30 @@ public class IndividualLspProxy extends LspProxy {
 		}
 	}
 
+	private Process getProcessFromStreamConnectionProvider() {
+		Field field;
+		try {
+			if (streamConnectionProvider instanceof ProcessStreamConnectionProvider)
+				field = ProcessStreamConnectionProvider.class.getDeclaredField("process");
+			else if (streamConnectionProvider instanceof LaunchConfigurationStreamProvider) {
+				field = LaunchConfigurationStreamProvider.class.getDeclaredField("process");
+				field.setAccessible(true);
+				IProcess result = (IProcess) field.get(streamConnectionProvider);
+				if (!(result instanceof RuntimeProcess))
+					return null;
+				Method systemProcessGetter = RuntimeProcess.class.getDeclaredMethod("getSystemProcess");
+				systemProcessGetter.setAccessible(true);
+				return (Process) systemProcessGetter.invoke(result);
+			}else
+				return null;
+			field.setAccessible(true);
+			return (Process) field.get(streamConnectionProvider);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	@Override
 	public void startServer() {
 		try {
@@ -85,8 +117,12 @@ public class IndividualLspProxy extends LspProxy {
 		if (redirect2 != null) {
 			redirect2.stop();
 		}
-		if (streamConnectionProvider != null)
-			streamConnectionProvider.stop();
+		if (streamConnectionProvider != null) {
+			if (this.process == getProcessFromStreamConnectionProvider())
+				streamConnectionProvider.stop();
+			else if (this.process != null)
+				process.destroy();
+		}
 		super.stopServer();
 	}
 
