@@ -3,38 +3,29 @@ package com.make.equo.monaco.lsp;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.osgi.framework.FrameworkUtil;
 
-public class LspProxy {
+public abstract class LspProxy {
 	private static final String SERVER_FILE = "server.js";
 	private int proxyPort;
 	private ServerSocket socketPortReserve;
-	private String serversFile = null;
 	private String proxyFile = null;
-	private boolean serverOn = false;
 	private Process process = null;
-	private int instancesUsingServer = 0;
-	private Map<String, List<String>> servers = new HashMap<>();
 
 	public LspProxy() {
 		File bundle;
@@ -46,34 +37,50 @@ public class LspProxy {
 				proxyFile = extractServerFile(bundle.toString());
 			}
 			proxyPort = reservePortForProxy(0);
-			File fileForServer = File.createTempFile("serversLsp", ".yml");
-			fileForServer.deleteOnExit();
-			serversFile = fileForServer.toString();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public int getPort() {
-		return 3000;
-	}
+	public abstract void startServer();
 
-	private String formatServerName(String name) {
-		return name.replace(" ", "");
-	}
-
-	public LspProxy addServer(String name, List<String> excecutionParameters) {
-		servers.put(formatServerName(name), excecutionParameters);
-		saveServersInFile();
-		return this;
-	}
-
-	public LspProxy removeServer(Collection<String> names) {
-		for (String name : names) {
-			servers.remove(name);
+	protected void startServerWithParams(String... params) throws IOException {
+		try {
+			closeSocketPortReserve();
+			List<String> args = new ArrayList<>();
+			args.addAll(Arrays.asList("node", getProxyFile(), "--port", Integer.valueOf(getPort()).toString()));
+			args.addAll(Arrays.asList(params));
+			ProcessBuilder processBuilder = new ProcessBuilder(args);
+			setProcess(processBuilder.start());
+		} catch (IOException e) {
+			setProcess(null);
+			throw e;
 		}
-		saveServersInFile();
-		return this;
+	}
+
+	public void stopServer() {
+		if (getProcess() != null) {
+			getProcess().destroy();
+			try {
+				getProcess().waitFor();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			setProcess(null);
+		}
+		reservePortForProxy(getPort());
+	}
+
+	public int getPort() {
+		return proxyPort;
+	}
+
+	protected void closeSocketPortReserve() {
+		try {
+			socketPortReserve.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -121,65 +128,6 @@ public class LspProxy {
 		return new File(tempDir.toString(), SERVER_FILE).toString();
 	}
 
-	/**
-	 * Reserves a port to be used later by the ws proxy. It mantains a socket listen
-	 * on that port until the proxy is started
-	 * 
-	 * @param port The port to be reserved. Use 0 to reserve a random port
-	 * 
-	 * @return the port reserved
-	 */
-	private int reservePortForProxy(int port) {
-		try {
-			socketPortReserve = new ServerSocket(port);
-			socketPortReserve.setReuseAddress(true);
-			return socketPortReserve.getLocalPort();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return (int) (Math.random() * 10000 + 40000);
-	}
-
-	public synchronized void startServer() {
-		if (!serverOn) {
-			try {
-				socketPortReserve.close();
-				ProcessBuilder processBuilder = new ProcessBuilder("node", proxyFile, "--port",
-						Integer.valueOf(getPort()).toString(), "--languageServers", serversFile);
-				process = processBuilder.start();
-			} catch (IOException e) {
-				process = null;
-				e.printStackTrace();
-				return;
-			}
-			serverOn = true;
-		}
-		instancesUsingServer++;
-	}
-
-	private void saveServersInFile() {
-		StringBuilder content = new StringBuilder();
-		content.append("langservers:\n");
-		for (Entry<String, List<String>> server : servers.entrySet()) {
-			content.append("    ");
-			content.append(server.getKey());
-			content.append(":\n");
-			for (String parameter : server.getValue()) {
-				content.append("        - ");
-				content.append(parameter);
-				content.append("\n");
-			}
-		}
-
-		try {
-			PrintWriter writer = new PrintWriter(serversFile, "UTF-8");
-			writer.print(content);
-			writer.close();
-		} catch (FileNotFoundException | UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-	}
-
 	private static void markForDelete(File directoryToBeDeleted) {
 		directoryToBeDeleted.deleteOnExit();
 		File[] allContents = directoryToBeDeleted.listFiles();
@@ -190,23 +138,34 @@ public class LspProxy {
 		}
 	}
 
-	public synchronized void stopServer() {
-		if (serverOn && --instancesUsingServer == 0) {
-			if (process != null) {
-				process.destroy();
-				try {
-					process.waitFor();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				process = null;
-			}
-			reservePortForProxy(getPort());
-			serverOn = false;
+	/**
+	 * Reserves a port to be used later by the ws proxy. It mantains a socket listen
+	 * on that port until the proxy is started
+	 * 
+	 * @param port The port to be reserved. Use 0 to reserve a random port
+	 * 
+	 * @return the port reserved
+	 */
+	protected int reservePortForProxy(int port) {
+		try {
+			socketPortReserve = new ServerSocket(port);
+			socketPortReserve.setReuseAddress(true);
+			return socketPortReserve.getLocalPort();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+		return (int) (Math.random() * 10000 + 40000);
 	}
 
-	public boolean isRunning() {
-		return serverOn;
+	public Process getProcess() {
+		return process;
+	}
+
+	protected void setProcess(Process process) {
+		this.process = process;
+	}
+
+	protected String getProxyFile() {
+		return proxyFile;
 	}
 }

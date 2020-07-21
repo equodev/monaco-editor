@@ -7,6 +7,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 
+import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.ws.api.IEquoEventHandler;
 import com.make.equo.ws.api.IEquoWebSocketService;
 
@@ -23,6 +24,7 @@ public class EquoMonacoEditorWidgetBuilder {
 	private int style;
 	private String contents;
 	private String fileName;
+	private LspProxy lsp;
 
 	public EquoMonacoEditorWidgetBuilder() {
 		this.style = -1;
@@ -50,12 +52,17 @@ public class EquoMonacoEditorWidgetBuilder {
 		return this;
 	}
 
+	public EquoMonacoEditorWidgetBuilder withLSP(LspProxy lsp) {
+		this.lsp = lsp;
+		return this;
+	}
+
 	public EquoMonacoEditor create() {
 		if (style == -1) {
 			style = parent.getStyle();
 		}
 		EquoMonacoEditor editor = new EquoMonacoEditor(parent, style, equoEventHandler, websocketService);
-		editor.createEditor(contents, fileName);
+		editor.createEditor(contents, fileName, lsp);
 		return editor;
 	}
 

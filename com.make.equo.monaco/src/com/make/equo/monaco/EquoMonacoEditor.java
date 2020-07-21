@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.google.gson.JsonObject;
 import com.make.equo.filesystem.api.IEquoFileSystem;
+import com.make.equo.monaco.lsp.CommonLspProxy;
 import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.ws.api.IEquoEventHandler;
 import com.make.equo.ws.api.IEquoRunnable;
@@ -36,7 +37,8 @@ import com.make.equo.ws.api.IEquoWebSocketService;
 public class EquoMonacoEditor {
 	protected IEquoFileSystem equoFileSystem;
 
-	private static LspProxy lspProxy = new LspProxy();
+	private static CommonLspProxy commonLspProxy = new CommonLspProxy();
+	private LspProxy lspProxy;
 	private static Map<String, String> lspServers = new HashMap<>();
 
 	private volatile boolean loaded;
@@ -76,6 +78,7 @@ public class EquoMonacoEditor {
 		onLoadListeners = new ArrayList<IEquoRunnable<Void>>();
 		loaded = false;
 		registerActions();
+		this.lspProxy = commonLspProxy;
 	}
 
 	private void registerActions() {
@@ -88,11 +91,13 @@ public class EquoMonacoEditor {
 	public void initialize(String contents, String fileName, String filePath) {
 		this.filePath = filePath;
 		this.fileName = fileName;
-		handleCreateEditor(contents, fileName);
+		handleCreateEditor(contents, fileName, null);
 	}
 
-	protected void createEditor(String contents, String fileName) {
-		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(contents, fileName));
+	protected void createEditor(String contents, String fileName, LspProxy lsp) {
+		this.lspProxy = lsp;
+		equoEventHandler.on("_createEditor",
+				(JsonObject payload) -> handleCreateEditor(contents, fileName, "ws://127.0.0.1:" + lsp.getPort()));
 	}
 
 	protected String getLspServerForFile(String fileName) {
@@ -104,13 +109,16 @@ public class EquoMonacoEditor {
 		return lspServers.getOrDefault(extension, null);
 	}
 
-	protected void handleCreateEditor(String contents, String fileName) {
-//		new Thread(() -> lspProxy.startServer()).start();
+	protected void handleCreateEditor(String contents, String fileName, String fixedLspPath) {
+		String lspPath = (fixedLspPath != null) ? fixedLspPath : getLspServerForFile(fileName);
+		if (lspPath != null) {
+			new Thread(() -> lspProxy.startServer()).start();
+		}
 		Map<String, String> editorData = new HashMap<String, String>();
 		editorData.put("text", contents);
 		editorData.put("name", fileName);
 		editorData.put("namespace", namespace);
-		editorData.put("lspPath", getLspServerForFile(fileName));
+		editorData.put("lspPath", lspPath);
 		equoEventHandler.send("_doCreateEditor", editorData);
 		loaded = true;
 		for (IEquoRunnable<Void> onLoadListener : onLoadListeners) {
@@ -386,8 +394,9 @@ public class EquoMonacoEditor {
 	 */
 	public static void addLspServer(List<String> executionParameters, Collection<String> extensions) {
 		for (String extension : extensions) {
-			lspProxy.addServer(extension, executionParameters);
-			addLspWsServer("ws://127.0.0.1:" + lspProxy.getPort() + "/" + extension, Collections.singleton(extension));
+			commonLspProxy.addServer(extension, executionParameters);
+			addLspWsServer("ws://127.0.0.1:" + commonLspProxy.getPort() + "/" + extension,
+					Collections.singleton(extension));
 		}
 	}
 
@@ -399,7 +408,7 @@ public class EquoMonacoEditor {
 	 *                   not have the initial dot. Example: ["php", "php4"]
 	 */
 	public static void removeLspServer(Collection<String> extensions) {
-		lspProxy.removeServer(extensions);
+		commonLspProxy.removeServer(extensions);
 		for (String extension : extensions) {
 			lspServers.remove(extension);
 		}
