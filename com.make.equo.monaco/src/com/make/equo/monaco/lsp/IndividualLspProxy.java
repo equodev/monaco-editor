@@ -102,7 +102,9 @@ public class IndividualLspProxy extends LspProxy {
 	public void startServer() {
 		try {
 			startServerWithParams("--individual");
-			connectLspWithProxy();
+			synchronized (streamConnectionProvider) {
+				connectLspWithProxy();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
@@ -117,11 +119,13 @@ public class IndividualLspProxy extends LspProxy {
 		if (redirect2 != null) {
 			redirect2.stop();
 		}
-		if (streamConnectionProvider != null) {
-			if (this.process == getProcessFromStreamConnectionProvider())
-				streamConnectionProvider.stop();
-			else if (this.process != null)
-				process.destroy();
+		synchronized (streamConnectionProvider) {
+			if (streamConnectionProvider != null) {
+				if (this.process == getProcessFromStreamConnectionProvider())
+					streamConnectionProvider.stop();
+				else if (this.process != null)
+					process.destroy();
+			}
 		}
 		super.stopServer();
 	}

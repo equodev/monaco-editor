@@ -24,22 +24,25 @@ public abstract class LspProxy {
 	private static final String SERVER_FILE = "server.js";
 	private int proxyPort;
 	private ServerSocket socketPortReserve;
-	private String proxyFile = null;
+	private static String proxyFile = null;
 	private Process process = null;
-
-	public LspProxy() {
+	
+	static {
 		File bundle;
 		try {
-			bundle = FileLocator.getBundleFile(FrameworkUtil.getBundle(this.getClass()));
+			bundle = FileLocator.getBundleFile(FrameworkUtil.getBundle(LspProxy.class));
 			if (bundle.isDirectory()) {
 				proxyFile = new File(bundle, SERVER_FILE).toString();
 			} else {
 				proxyFile = extractServerFile(bundle.toString());
 			}
-			proxyPort = reservePortForProxy(0);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public LspProxy() {
+		proxyPort = reservePortForProxy(0);
 	}
 
 	public abstract void startServer();

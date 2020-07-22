@@ -117,7 +117,7 @@ public class EquoMonacoEditor {
 		String lspPath = (fixedLspPath != null) ? fixedLspPath : getLspServerForFile(fileName);
 		if (lspPath != null) {
 			try {
-				lspProxy.startServer();
+				new Thread(() -> lspProxy.startServer()).start();
 			} catch (Exception e) {
 			}
 		}

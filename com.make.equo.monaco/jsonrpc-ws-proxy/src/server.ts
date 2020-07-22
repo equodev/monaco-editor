@@ -103,9 +103,6 @@ if (!argv.individual){
     let socket : rpc.IWebSocket = toSocket(client);
     let connection = rpcServer.createWebSocketConnection(socket);
     rpcServer.forward(connection, localConnection);
-    socket.onClose((code, reason) => {
-      myProcess.exit(0);
-    });
   });
 }
 
