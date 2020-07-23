@@ -23,6 +23,14 @@ function toSocket(webSocket: ws): rpc.IWebSocket {
   }
 }
 
+function checkFileExistence(){
+  if (!fs.existsSync(__filename)) {
+      process.exit(1);
+  }
+  setInterval(function(){checkFileExistence();}, 10000);
+}
+checkFileExistence();
+
 let argv = parseArgs(process.argv.slice(2));
 
 let serverPort : number = parseInt(argv.port) || 3000;
@@ -38,14 +46,6 @@ if (!argv.individual){
     console.log(`Usage: server.js --port 3000 --languageServers config.yml`);
     process.exit(1);
   }
-
-  function checkFileExistence(){
-    if (!fs.existsSync(argv.languageServers)) {
-        process.exit(1);
-    }
-    setInterval(function(){checkFileExistence();}, 20000);
-  }
-  checkFileExistence();
 
   let languageServers;
   try {
