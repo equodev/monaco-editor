@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collection;
-import java.util.Hashtable;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspace;
@@ -169,17 +168,7 @@ public class MonacoEditorPart extends EditorPart {
 				try {
 					BundleContext bndContext = FrameworkUtil.getBundle(EquoMonacoEditorWidgetBuilder.class)
 							.getBundleContext();
-					EquoMonacoEditorWidgetBuilder i = new EquoMonacoEditorWidgetBuilder(); // the service implementation
-					Hashtable props = new Hashtable();
-					props.put("description", "This an long value");
-					bndContext.registerService(EquoMonacoEditorWidgetBuilder.class.getName(), i, props);
-
-					@SuppressWarnings("unchecked")
-					ServiceReference<IEquoServer> serviceReference = (ServiceReference<IEquoServer>) bndContext
-							.getServiceReference(IEquoServer.class.getName());
-					if (serviceReference != null) {
-						IEquoServer equoServer = bndContext.getService(serviceReference);
-					}
+					activateNeededServices(bndContext);
 
 					ServiceReference<EquoMonacoEditorWidgetBuilder> svcReference = bndContext
 							.getServiceReference(EquoMonacoEditorWidgetBuilder.class);
@@ -205,6 +194,15 @@ public class MonacoEditorPart extends EditorPart {
 
 		}
 
+	}
+
+	@SuppressWarnings("unchecked")
+	private void activateNeededServices(BundleContext bndContext) {
+		ServiceReference<IEquoServer> serviceReference = (ServiceReference<IEquoServer>) bndContext
+				.getServiceReference(IEquoServer.class.getName());
+		if (serviceReference != null) {
+			bndContext.getService(serviceReference);
+		}
 	}
 
 	private LspProxy getLspProxy(IFile file) {
