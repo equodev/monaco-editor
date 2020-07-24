@@ -17,59 +17,14 @@ public class IndividualLspProxy extends LspProxy {
 
 	private StreamConnectionProvider streamConnectionProvider;
 	private Process process;
-	private Thread redirect1 = null;
-	private Thread redirect2 = null;
+	private LspWsProxy proxy;
 
 	public IndividualLspProxy(LanguageServerWrapper lspServer) {
-		super();
 		try {
 			Field field = lspServer.getClass().getDeclaredField("lspStreamProvider");
 			field.setAccessible(true);
 			this.streamConnectionProvider = (StreamConnectionProvider) field.get(lspServer);
 		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void connectLspWithProxy() {
-		if (streamConnectionProvider == null) {
-			return;
-		}
-		try {
-			streamConnectionProvider.start();
-			this.process = getProcessFromStreamConnectionProvider();
-
-			InputStream streamIn = streamConnectionProvider.getInputStream();
-			OutputStream streamOut = streamConnectionProvider.getOutputStream();
-			Process process = getProcess();
-			final InputStream inputProxy = process.getInputStream();
-			final OutputStream outputProxy = process.getOutputStream();
-			redirect1 = new Thread(() -> {
-				try {
-					while (true) {
-						int read = inputProxy.read();
-						streamOut.write(read);
-						streamOut.flush();
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-
-			});
-			redirect1.start();
-			redirect2 = new Thread(() -> {
-				try {
-					while (true) {
-						final int read = streamIn.read();
-						outputProxy.write(read);
-						outputProxy.flush();
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			});
-			redirect2.start();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -100,24 +55,33 @@ public class IndividualLspProxy extends LspProxy {
 
 	@Override
 	public void startServer() {
+		if (streamConnectionProvider == null) {
+			return;
+		}
 		try {
-			startServerWithParams("--individual");
 			synchronized (streamConnectionProvider) {
-				connectLspWithProxy();
+				streamConnectionProvider.start();
+				this.process = getProcessFromStreamConnectionProvider();
+	
+				InputStream streamIn = streamConnectionProvider.getInputStream();
+				OutputStream streamOut = streamConnectionProvider.getOutputStream();
+				closeSocketPortReserve();
+				proxy = new LspWsProxy(getPort(), streamIn, streamOut);
+				proxy.start();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			return;
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void stopServer() {
-		if (redirect1 != null)
-			redirect1.stop();
-		if (redirect2 != null) {
-			redirect2.stop();
+		if (proxy != null) {
+			try {
+				proxy.stop();
+			} catch (IOException | InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 		synchronized (streamConnectionProvider) {
 			if (streamConnectionProvider != null) {
@@ -127,7 +91,6 @@ public class IndividualLspProxy extends LspProxy {
 					process.destroy();
 			}
 		}
-		super.stopServer();
 	}
 
 }
