@@ -36,7 +36,6 @@ Import-Package: com.make.equo.monaco,\
 	org.eclipse.ui.ide.application,\
 	org.eclipse.ui.ide.application.source,\
 	org.eclipse.ui.ide.source,\
-	org.eclipse.core.contenttype,\
 	org.eclipse.core.resources,\
 	org.eclipse.core.resources.source,\
 	org.eclipse.core.commands,\
