@@ -42,7 +42,7 @@ import org.osgi.service.component.annotations.Reference;
 
 import com.make.equo.monaco.EquoMonacoEditor;
 import com.make.equo.monaco.EquoMonacoEditorWidgetBuilder;
-import com.make.equo.monaco.lsp.IndividualLspProxy;
+import com.make.equo.monaco.lsp.EclipseLspProxy;
 import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
@@ -210,7 +210,7 @@ public class MonacoEditorPart extends EditorPart {
 			Collection<LanguageServerWrapper> wrappers = LanguageServiceAccessor.getLSWrappers(file, null);
 			if (!wrappers.isEmpty()) {
 				LanguageServerWrapper lspServer = wrappers.iterator().next();
-				return new IndividualLspProxy(lspServer);
+				return new EclipseLspProxy(lspServer);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -16,7 +16,6 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,9 +36,9 @@ import com.make.equo.ws.api.IEquoWebSocketService;
 public class EquoMonacoEditor {
 	protected IEquoFileSystem equoFileSystem;
 
-	private static CommonLspProxy commonLspProxy = new CommonLspProxy();
-	private LspProxy lspProxy;
-	private static Map<String, String> lspServers = new HashMap<>();
+	private LspProxy lspProxy = null;
+	private static Map<String, List<String>> lspServers = new HashMap<>();
+	private static Map<String, String> lspWsServers = new HashMap<>();
 
 	private volatile boolean loaded;
 
@@ -78,7 +77,6 @@ public class EquoMonacoEditor {
 		onLoadListeners = new ArrayList<IEquoRunnable<Void>>();
 		loaded = false;
 		registerActions();
-		this.lspProxy = commonLspProxy;
 	}
 
 	private void registerActions() {
@@ -110,12 +108,17 @@ public class EquoMonacoEditor {
 		if (i > 0) {
 			extension = fileName.substring(i + 1);
 		}
-		return lspServers.getOrDefault(extension, null);
+		List<String> lspProgram = lspServers.getOrDefault(extension, null);
+		if (lspProgram != null) {
+			this.lspProxy = new CommonLspProxy(lspProgram);
+			return "ws://127.0.0.1:" + this.lspProxy.getPort();
+		}
+		return lspWsServers.getOrDefault(extension, null);
 	}
 
 	protected void handleCreateEditor(String contents, String fileName, String fixedLspPath) {
 		String lspPath = (fixedLspPath != null) ? fixedLspPath : getLspServerForFile(fileName);
-		if (lspPath != null) {
+		if (lspPath != null && this.lspProxy != null) {
 			try {
 				new Thread(() -> lspProxy.startServer()).start();
 			} catch (Exception e) {
@@ -384,7 +387,7 @@ public class EquoMonacoEditor {
 	 */
 	public static void addLspWsServer(String fullServerPath, Collection<String> extensions) {
 		for (String extension : extensions) {
-			lspServers.put(extension, fullServerPath);
+			lspWsServers.put(extension, fullServerPath);
 		}
 	}
 
@@ -401,9 +404,7 @@ public class EquoMonacoEditor {
 	 */
 	public static void addLspServer(List<String> executionParameters, Collection<String> extensions) {
 		for (String extension : extensions) {
-			commonLspProxy.addServer(extension, executionParameters);
-			addLspWsServer("ws://127.0.0.1:" + commonLspProxy.getPort() + "/" + extension,
-					Collections.singleton(extension));
+			lspServers.put(extension, executionParameters);
 		}
 	}
 
@@ -415,9 +416,9 @@ public class EquoMonacoEditor {
 	 *                   not have the initial dot. Example: ["php", "php4"]
 	 */
 	public static void removeLspServer(Collection<String> extensions) {
-		commonLspProxy.removeServer(extensions);
 		for (String extension : extensions) {
 			lspServers.remove(extension);
+			lspWsServers.remove(extension);
 		}
 	}
 

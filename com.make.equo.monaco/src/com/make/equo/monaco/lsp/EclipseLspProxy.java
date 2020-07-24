@@ -13,13 +13,12 @@ import org.eclipse.lsp4e.server.StreamConnectionProvider;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.RuntimeProcess;
 
-public class IndividualLspProxy extends LspProxy {
+public class EclipseLspProxy extends LspProxy {
 
 	private StreamConnectionProvider streamConnectionProvider;
 	private Process process;
-	private LspWsProxy proxy;
 
-	public IndividualLspProxy(LanguageServerWrapper lspServer) {
+	public EclipseLspProxy(LanguageServerWrapper lspServer) {
 		try {
 			Field field = lspServer.getClass().getDeclaredField("lspStreamProvider");
 			field.setAccessible(true);
@@ -65,9 +64,7 @@ public class IndividualLspProxy extends LspProxy {
 	
 				InputStream streamIn = streamConnectionProvider.getInputStream();
 				OutputStream streamOut = streamConnectionProvider.getOutputStream();
-				closeSocketPortReserve();
-				proxy = new LspWsProxy(getPort(), streamIn, streamOut);
-				proxy.start();
+				startProxy(streamIn, streamOut);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -76,13 +73,7 @@ public class IndividualLspProxy extends LspProxy {
 
 	@Override
 	public void stopServer() {
-		if (proxy != null) {
-			try {
-				proxy.stop();
-			} catch (IOException | InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+		super.stopServer();
 		synchronized (streamConnectionProvider) {
 			if (streamConnectionProvider != null) {
 				if (this.process == getProcessFromStreamConnectionProvider())
