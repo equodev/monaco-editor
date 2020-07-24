@@ -14,9 +14,8 @@
   "bin": "../resources/server.js",
   "main": "../resources/server.js",
   "scripts": {
-    "prepare": "npm run clean && npm run build",
+    "prepare": "yarn run build",
     "watch": "tsc -w",
-    "clean": "rimraf ../resources",
     "build": "tsc"
   },
   "dependencies": {
