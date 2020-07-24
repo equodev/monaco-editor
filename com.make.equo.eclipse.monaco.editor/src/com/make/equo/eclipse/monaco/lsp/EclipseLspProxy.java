@@ -1,4 +1,4 @@
-package com.make.equo.monaco.lsp;
+package com.make.equo.eclipse.monaco.lsp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,12 +6,14 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.debug.core.model.RuntimeProcess;
 import org.eclipse.lsp4e.LanguageServerWrapper;
 import org.eclipse.lsp4e.LaunchConfigurationStreamProvider;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 import org.eclipse.lsp4e.server.StreamConnectionProvider;
-import org.eclipse.debug.core.model.IProcess;
-import org.eclipse.debug.core.model.RuntimeProcess;
+
+import com.make.equo.monaco.lsp.LspProxy;
 
 public class EclipseLspProxy extends LspProxy {
 

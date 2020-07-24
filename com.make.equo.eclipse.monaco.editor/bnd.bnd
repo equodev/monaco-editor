@@ -1,7 +1,9 @@
 Bundle-ActivationPolicy: lazy
 Bundle-Version: ${version}.${tstamp}
 Bundle-SymbolicName: com.make.equo.eclipse.monaco.editor;singleton:=true
-Private-Package: com.make.equo.eclipse.monaco.editor
+Private-Package: \
+	com.make.equo.eclipse.monaco.editor,\
+	com.make.equo.eclipse.monaco.lsp
 Import-Package: com.make.equo.monaco,\
     *
 -buildpath: \
@@ -47,7 +49,9 @@ Import-Package: com.make.equo.monaco,\
 	com.make.equo.server.api,\
 	osgi.cmpn,\
 	org.eclipse.lsp4e,\
-	org.eclipse.lsp4j
+	org.eclipse.lsp4j,\
+    org.eclipse.debug.core,\
+    org.eclipse.debug.core.source
 -includeresource: resources/
 -runbundles: \
 	ch.qos.logback.classic;version='[1.1.2,1.1.3)',\

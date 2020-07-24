@@ -40,9 +40,9 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Reference;
 
+import com.make.equo.eclipse.monaco.lsp.EclipseLspProxy;
 import com.make.equo.monaco.EquoMonacoEditor;
 import com.make.equo.monaco.EquoMonacoEditorWidgetBuilder;
-import com.make.equo.monaco.lsp.EclipseLspProxy;
 import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
