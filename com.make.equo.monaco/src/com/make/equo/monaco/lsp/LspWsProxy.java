@@ -10,6 +10,11 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 public class LspWsProxy extends WebSocketServer {
+	private static final int ASCII_0 = 48;
+	private static final int READING_HEADER_STATE = 0;
+	private static final int READING_CONTENT_LENGTH_STATE = 1;
+	private static final int SEARCHING_START_MESSAGE_STATE = 2;
+	private static final int READING_MESSAGE_STATE = 3;
 	private OutputStream streamOut;
 	private Thread redirectThread = null;
 
@@ -26,19 +31,19 @@ public class LspWsProxy extends WebSocketServer {
 					// Block of read message
 					int readed = streamIn.read();
 					switch (state) {
-					case 0:
+					case READING_HEADER_STATE:
 						if ((char) readed == ' ') {
 							state++;
 						}
 						break;
-					case 1:
+					case READING_CONTENT_LENGTH_STATE:
 						if ((char) readed == '\r') {
 							state++;
-						}else {
-							lengthMessage = (lengthMessage * 10) + readed - 48;
+						} else {
+							lengthMessage = (lengthMessage * 10) + readed - ASCII_0;
 						}
 						break;
-					case 2:
+					case SEARCHING_START_MESSAGE_STATE:
 						if ((char) readed == '{') {
 							builder = new StringBuilder();
 							builder.append((char) readed);
@@ -46,13 +51,13 @@ public class LspWsProxy extends WebSocketServer {
 							lengthReaded++;
 						}
 						break;
-					case 3:
+					case READING_MESSAGE_STATE:
 						builder.append((char) readed);
 						if (++lengthReaded == lengthMessage) {
 							broadcast(builder.toString());
 							lengthReaded = 0;
 							lengthMessage = 0;
-							state = 0;
+							state = READING_HEADER_STATE;
 						}
 					}
 				}
