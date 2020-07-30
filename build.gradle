@@ -1,8 +1,12 @@
 equo {
     channel = "rls"
+    space = "monaco-editor"
 }
 
 task uploadMetadata(type: com.make.equo.UploadMetadataTask) {
+}
+
+task publish(type: com.make.equo.UploadRepoTask, dependsOn: [uploadMetadata]) {
 }
 
 task wrapper(type: Wrapper) {
@@ -63,4 +67,3 @@ task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
         })
     }
 }
-
