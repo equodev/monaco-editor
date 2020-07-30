@@ -9,7 +9,7 @@
 			class="com.make.equo.eclipse.monaco.editor.MonacoEditorPart"
 			default="true"
 			id="com.make.equo.eclipse.monaco.editor.MonacoEditorPart"
-			name="Monaco Editor">
+			name="Equo Editor">
 		    <contentTypeBinding
                contentTypeId="org.eclipse.core.runtime.text">
             </contentTypeBinding>

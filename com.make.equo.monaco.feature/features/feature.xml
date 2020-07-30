@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="com.make.equo.monaco.feature"
-      label="Monaco"
+      label="Equo Editor"
       version="0.1.6"
-      provider-name="MAKE">
+      provider-name="Equo">
 
    <description url="http://www.example.com/description">
       [Enter Feature Description here.]
