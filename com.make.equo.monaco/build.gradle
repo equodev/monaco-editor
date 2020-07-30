@@ -1,5 +1,10 @@
 apply plugin: "com.moowork.node"
 
+task yarnPublish(type: YarnTask) {
+  dependsOn yarn_install
+  args = ['run', 'publishFromPackage']
+}
+
 node {
   download = true
   version = node_version
