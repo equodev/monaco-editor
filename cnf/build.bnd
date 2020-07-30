@@ -1,4 +1,4 @@
--include: /home/elias/Documents/Equo/Framework/ws/git/cnf/equobuild.bnd,https://testing-core.ams3.digitaloceanspaces.com/rls/0.1.6/testbuild.bnd
+-include: https://equo-framework.ams3.digitaloceanspaces.com/rls/0.1.6/equobuild.bnd,https://testing-core.ams3.digitaloceanspaces.com/rls/0.1.6/testbuild.bnd
 
 -plugin.1.Release: \
     aQute.bnd.deployer.repository.LocalIndexedRepo; \
