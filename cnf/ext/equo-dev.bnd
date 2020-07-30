@@ -3,7 +3,9 @@ javac.target:           1.8
 javac.compliance:       1.8
 javac.debug:            on
 
--plugin.2.Eclipse201912: \
+-include: ${workspace}/gradle.properties
+
+-plugin.1.Eclipse201912: \
     aQute.bnd.repository.osgi.OSGiRepository; \
         name = "Eclipse201912"; \
         expand-bcp = true; \
@@ -11,7 +13,7 @@ javac.debug:            on
         poll.time = -1; \
         cache = ~/.bnd/cache/eclipse201912
 
--plugin.4.Mvn: \
+-plugin.2.Mvn: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
         releaseUrl = "https://repo1.maven.org/maven2"; \
         index = ${.}/central.mvn; \
