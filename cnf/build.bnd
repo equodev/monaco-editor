@@ -1,1 +1,14 @@
--include: /home/elias/Documents/Equo/Framework/ws/git/cnf/equobuild.bnd
+-include: /home/elias/Documents/Equo/Framework/ws/git/cnf/equobuild.bnd,https://testing-core.ams3.digitaloceanspaces.com/rls/0.1.6/testbuild.bnd
+
+-plugin.1.Release: \
+    aQute.bnd.deployer.repository.LocalIndexedRepo; \
+        name = Release; \
+        local = ${build}/release; \
+        type = P2|R5
+
+-plugin.2.P2Plugins: \
+    aQute.bnd.repository.osgi.OSGiRepository; \
+        name = "P2Plugins"; \
+        locations = "http://www.maketechnology.io/p2plugins/index.xml.gz"; \
+        poll.time = -1; \
+        cache = ~/.bnd/cache/p2plugins
