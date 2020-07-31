@@ -8,6 +8,9 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -129,7 +132,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		}
 
 		setInput(newInput);
-		setPartName(file.getName());
+		initializeNewInput(newInput);
 		editor.setFilePath(((FileEditorInput) newInput).getPath().toString());
 		doSave(new NullProgressMonitor());
 	}
@@ -151,10 +154,41 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		return true;
 	}
 
+	private void initializeNewInput(IEditorInput input) {
+		setPartName(input.getName());
+		if (input instanceof FileEditorInput) {
+			final FileEditorInput fileInput = (FileEditorInput) input;
+			setTitleToolTip(fileInput.getPath().toString());
+			ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
+				@Override
+				public void resourceChanged(final IResourceChangeEvent event) {
+					IResourceDelta delta = event.getDelta();
+
+					delta = delta.findMember(fileInput.getFile().getFullPath());
+					if (delta == null)
+						return;
+
+					if (delta.getKind() == IResourceDelta.REMOVED) {
+						if ((delta.getFlags() & IResourceDelta.MOVED_TO) != 0) {
+							IWorkspace workspace = ResourcesPlugin.getWorkspace();
+							workspace.removeResourceChangeListener(this);
+							IPath newPath = delta.getMovedToPath();
+							IFile file = workspace.getRoot().getFile(newPath);
+							FileEditorInput newInput = new FileEditorInput(file);
+							setInput(newInput);
+							initializeNewInput(newInput);
+							editor.setFilePath(newInput.getPath().toString());
+						}
+					}
+				}
+			});
+		}
+	}
+
 	@Override
 	public void createPartControl(Composite parent) {
 		IEditorInput input = getEditorInput();
-		setPartName(input.getName());
+		initializeNewInput(input);
 		if (input instanceof FileEditorInput) {
 			FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
