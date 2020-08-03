@@ -14,6 +14,3 @@ websocket.on('_getIsEditorCreated', () => {
 });
 
 EquoMonaco.create(document.getElementById('container')!);
-
-console.log("lmaoooooooooooooooooooooooo");
-console.log(websocket + "WEBSOCKETTTTTTTT")
