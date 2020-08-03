@@ -61,6 +61,7 @@ test.integration:
   stage: test
   before_script:
     - export HOME=$CI_PROJECT_DIR
+    - echo -e $REGISTRY_CREDENTIALS
     - echo -e $REGISTRY_CREDENTIALS | base64 -d > $HOME/.npmrc
     - Xvfb :1 -screen 0 1152x720x24+32 -ac -noreset 2> xvfb.err &
     - export DISPLAY=:1
