@@ -20,4 +20,4 @@ cnf/cache
 cnf/*/
 !cnf/ext
 *.prefs
-.npmrc
+/.npmrc
