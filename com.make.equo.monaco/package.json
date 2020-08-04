@@ -1,7 +1,8 @@
 {
   "private": true,
   "workspaces": [
-    "equo-monaco-editor-bundle"
+    "equo-monaco-editor-bundle",
+    "equo-monaco-editor"
   ],
   "dependencies": {
     "lerna": "^3.20.2"
