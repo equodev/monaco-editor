@@ -15,8 +15,18 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.BadPositionCategoryException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.IDocumentPartitioner;
+import org.eclipse.jface.text.IDocumentPartitioningListener;
+import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.TextSelection;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.window.Window;
@@ -38,6 +48,7 @@ import org.eclipse.ui.dialogs.SaveAsDialog;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.IElementStateListener;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -77,22 +88,21 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		editor.getContentsSync((editorContents) -> {
-			IEditorInput input = getEditorInput();
-			if (input instanceof FileEditorInput) {
-				Display.getDefault().asyncExec(() -> {
-					try {
-						((FileEditorInput) input).getFile().setContents(
-								new ByteArrayInputStream(editorContents.getBytes(Charset.forName("UTF-8"))), true,
-								false, monitor);
-						editor.handleAfterSave();
-					} catch (CoreException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				});
-			}
-		});
+		String editorContents = editor.getContentsSync();
+		IEditorInput input = getEditorInput();
+		if (input instanceof FileEditorInput) {
+			Display.getDefault().asyncExec(() -> {
+				try {
+					((FileEditorInput) input).getFile().setContents(
+							new ByteArrayInputStream(editorContents.getBytes(Charset.forName("UTF-8"))), true, false,
+							monitor);
+					editor.handleAfterSave();
+				} catch (CoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			});
+		}
 
 	}
 
@@ -284,7 +294,366 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	@Override
 	public IDocumentProvider getDocumentProvider() {
 		// TODO Auto-generated method stub
-		return null;
+		return new IDocumentProvider() {
+
+			@Override
+			public void connect(Object element) throws CoreException {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void disconnect(Object element) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public IDocument getDocument(Object element) {
+				// TODO Auto-generated method stub
+				return new IDocument() {
+					private String text = editor.getContentsSync();
+
+					@Override
+					public char getChar(int offset) throws BadLocationException {
+						return text.charAt(offset);
+					}
+
+					@Override
+					public int getLength() {
+						return text.length();
+					}
+
+					@Override
+					public String get() {
+						return text;
+					}
+
+					@Override
+					public String get(int offset, int length) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public void set(String text) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void replace(int offset, int length, String text) throws BadLocationException {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void addDocumentListener(IDocumentListener listener) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void removeDocumentListener(IDocumentListener listener) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void addPrenotifiedDocumentListener(IDocumentListener documentAdapter) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void removePrenotifiedDocumentListener(IDocumentListener documentAdapter) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void addPositionCategory(String category) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void removePositionCategory(String category) throws BadPositionCategoryException {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public String[] getPositionCategories() {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public boolean containsPositionCategory(String category) {
+						// TODO Auto-generated method stub
+						return false;
+					}
+
+					@Override
+					public void addPosition(Position position) throws BadLocationException {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void removePosition(Position position) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void addPosition(String category, Position position)
+							throws BadLocationException, BadPositionCategoryException {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void removePosition(String category, Position position) throws BadPositionCategoryException {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public Position[] getPositions(String category) throws BadPositionCategoryException {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public boolean containsPosition(String category, int offset, int length) {
+						// TODO Auto-generated method stub
+						return false;
+					}
+
+					@Override
+					public int computeIndexInCategory(String category, int offset)
+							throws BadLocationException, BadPositionCategoryException {
+						// TODO Auto-generated method stub
+						return 0;
+					}
+
+					@Override
+					public void addPositionUpdater(IPositionUpdater updater) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void removePositionUpdater(IPositionUpdater updater) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void insertPositionUpdater(IPositionUpdater updater, int index) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public IPositionUpdater[] getPositionUpdaters() {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public String[] getLegalContentTypes() {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public String getContentType(int offset) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public ITypedRegion getPartition(int offset) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public ITypedRegion[] computePartitioning(int offset, int length) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public void addDocumentPartitioningListener(IDocumentPartitioningListener listener) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void removeDocumentPartitioningListener(IDocumentPartitioningListener listener) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void setDocumentPartitioner(IDocumentPartitioner partitioner) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public IDocumentPartitioner getDocumentPartitioner() {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public int getLineLength(int line) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return 0;
+					}
+
+					@Override
+					public int getLineOfOffset(int offset) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return 0;
+					}
+
+					@Override
+					public int getLineOffset(int line) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return 0;
+					}
+
+					@Override
+					public IRegion getLineInformation(int line) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public IRegion getLineInformationOfOffset(int offset) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public int getNumberOfLines() {
+						// TODO Auto-generated method stub
+						return 0;
+					}
+
+					@Override
+					public int getNumberOfLines(int offset, int length) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return 0;
+					}
+
+					@Override
+					public int computeNumberOfLines(String text) {
+						// TODO Auto-generated method stub
+						return 0;
+					}
+
+					@Override
+					public String[] getLegalLineDelimiters() {
+						// TODO Auto-generated method stub
+						return new String[]{"\n"};
+					}
+
+					@Override
+					public String getLineDelimiter(int line) throws BadLocationException {
+						// TODO Auto-generated method stub
+						return "\n";
+					}
+
+					@Override
+					public int search(int startOffset, String findString, boolean forwardSearch, boolean caseSensitive,
+							boolean wholeWord) throws BadLocationException {
+						return text.indexOf(findString);
+					}
+
+				};
+			}
+
+			@Override
+			public void resetDocument(Object element) throws CoreException {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void saveDocument(IProgressMonitor monitor, Object element, IDocument document, boolean overwrite)
+					throws CoreException {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public long getModificationStamp(Object element) {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public long getSynchronizationStamp(Object element) {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+
+			@Override
+			public boolean isDeleted(Object element) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean mustSaveDocument(Object element) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean canSaveDocument(Object element) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public IAnnotationModel getAnnotationModel(Object element) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public void aboutToChange(Object element) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void changed(Object element) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void addElementStateListener(IElementStateListener listener) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void removeElementStateListener(IElementStateListener listener) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		};
 	}
 
 	@Override

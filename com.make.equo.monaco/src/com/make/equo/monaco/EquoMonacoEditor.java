@@ -174,11 +174,12 @@ public class EquoMonacoEditor {
 		}
 	}
 
-	public void getContentsSync(IEquoRunnable<String> runnable) {
+	public String getContentsSync() {
+		String[] result = { null };
 		if (lock.tryAcquire()) {
 			equoEventHandler.on(namespace + "_doGetContents", (JsonObject contents) -> {
 				try {
-					runnable.run(contents.get("contents").getAsString());
+					result[0] = contents.get("contents").getAsString();
 				} finally {
 					synchronized (lock) {
 						lock.notify();
@@ -196,6 +197,7 @@ public class EquoMonacoEditor {
 				}
 			}
 		}
+		return result[0];
 	}
 
 	public void getContentsAsync(IEquoRunnable<String> runnable) {
