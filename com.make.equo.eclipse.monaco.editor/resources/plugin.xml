@@ -9,6 +9,7 @@
 			class="com.make.equo.eclipse.monaco.editor.MonacoEditorPart"
 			default="true"
 			id="com.make.equo.eclipse.monaco.editor.MonacoEditorPart"
+			icon="img/equo.png"
 			name="Equo Editor">
 		    <contentTypeBinding
                contentTypeId="org.eclipse.core.runtime.text">
