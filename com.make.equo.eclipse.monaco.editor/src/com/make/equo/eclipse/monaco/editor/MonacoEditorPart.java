@@ -14,6 +14,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -35,6 +37,8 @@ import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.dialogs.SaveAsDialog;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
@@ -47,7 +51,7 @@ import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
 
-public class MonacoEditorPart extends EditorPart {
+public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 	@Reference
 	private EquoMonacoEditorWidgetBuilder monacoBuilder;
@@ -275,6 +279,95 @@ public class MonacoEditorPart extends EditorPart {
 	public void dispose() {
 		super.dispose();
 		editor.dispose();
+	}
+
+	@Override
+	public IDocumentProvider getDocumentProvider() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void close(boolean save) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public boolean isEditable() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void doRevertToSaved() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void setAction(String actionID, IAction action) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public IAction getAction(String actionId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setActionActivationCode(String actionId, char activationCharacter, int activationKeyCode,
+			int activationStateMask) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void removeActionActivationCode(String actionId) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public boolean showsHighlightRangeOnly() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void showHighlightRangeOnly(boolean showHighlightRangeOnly) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void setHighlightRange(int offset, int length, boolean moveCursor) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public IRegion getHighlightRange() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void resetHighlightRange() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public ISelectionProvider getSelectionProvider() {
+		return selectionProvider;
+	}
+
+	@Override
+	public void selectAndReveal(int offset, int length) {
+		editor.selectAndReveal(offset, length);
 	}
 
 }

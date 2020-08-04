@@ -351,6 +351,19 @@ public class EquoMonacoEditor {
 		}
 	}
 
+	public void selectAndReveal(int offset, int length) {
+		Map<String, Integer> data = new HashMap<>();
+		data.put("offset", offset);
+		data.put("length", length);
+		if (loaded) {
+			equoEventHandler.send(namespace + "_selectAndReveal", data);
+		} else {
+			addOnLoadListener((IEquoRunnable<Void>) runnable -> {
+				equoEventHandler.send(namespace + "_selectAndReveal", data);
+			});
+		}
+	}
+
 	public void configSelection(IEquoRunnable<Boolean> selectionFunction) {
 		equoEventHandler.on(namespace + "_selection", (JsonObject contents) -> {
 			selectionFunction.run(contents.get("endColumn").getAsInt() != contents.get("startColumn").getAsInt()
