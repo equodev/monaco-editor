@@ -288,16 +288,22 @@ public class EquoMonacoEditor {
 		}
 	}
 
-	public void registerFileToListen() {
+	public boolean registerFileToListen() {
 		fileName = Paths.get(filePath).getFileName().toString();
-		Path path = Paths.get(Paths.get(filePath).getParent().toString());
+		Path parent = Paths.get(filePath).getParent();
+		if (parent == null) {
+			return false;
+		}
+		Path path = Paths.get(parent.toString());
 		try {
 			watchService = FileSystems.getDefault().newWatchService();
 			path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY,
 					StandardWatchEventKinds.ENTRY_DELETE);
 		} catch (IOException e) {
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 
 	public void listenChangesPath() {
@@ -313,7 +319,9 @@ public class EquoMonacoEditor {
 			}
 		}
 
-		registerFileToListen();
+		if (!registerFileToListen()) {
+			return;
+		}
 
 		new Thread() {
 			public void run() {
