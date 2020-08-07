@@ -7,6 +7,7 @@ import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,23 +57,25 @@ public class EquoMonacoEditor {
 		return filePath;
 	}
 
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+		this.fileName = new File(this.filePath).getName();
+		listenChangesPath();
+	}
+
 	protected IEquoEventHandler equoEventHandler;
 
 	public EquoMonacoEditor(Composite parent, int style, IEquoEventHandler handler,
-			IEquoWebSocketService websocketService) {
-		this(handler);
+			IEquoWebSocketService websocketService, IEquoFileSystem equoFileSystem) {
+		this(handler, equoFileSystem);
 		browser = new Browser(parent, style);
 		String wsPort = String.format("&equowsport=%s", String.valueOf(websocketService.getPort()));
 		browser.setUrl("http://" + EQUO_MONACO_CONTRIBUTION_NAME + "?namespace=" + namespace + wsPort);
 	}
 
 	public EquoMonacoEditor(IEquoEventHandler handler, IEquoFileSystem equoFileSystem) {
-		this(handler);
-		this.equoFileSystem = equoFileSystem;
-	}
-
-	public EquoMonacoEditor(IEquoEventHandler handler) {
 		this.equoEventHandler = handler;
+		this.equoFileSystem = equoFileSystem;
 		namespace = "editor" + Double.toHexString(Math.random());
 		onLoadListeners = new ArrayList<IEquoRunnable<Void>>();
 		loaded = false;
@@ -93,6 +96,9 @@ public class EquoMonacoEditor {
 	}
 
 	protected void createEditor(String contents, String fileName, LspProxy lsp) {
+		if (fileName.startsWith("file:")) {
+			setFilePath(fileName.substring(5));
+		}
 		String lspPathAux = null;
 		if (lsp != null) {
 			this.lspProxy = lsp;
@@ -257,6 +263,7 @@ public class EquoMonacoEditor {
 					File file = equoFileSystem.saveFileAs(content);
 					if (file != null) {
 						filePath = file.getAbsolutePath();
+						notifyFilePathChanged();
 						handleAfterSave();
 						listenChangesPath();
 					}
@@ -316,6 +323,8 @@ public class EquoMonacoEditor {
 						key = watchService.take();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
+					} catch (ClosedWatchServiceException e) {
+						break;
 					}
 					for (WatchEvent<?> event : key.pollEvents()) {
 						if (event.context().toString().trim().equals(fileName)) {

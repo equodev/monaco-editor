@@ -130,6 +130,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 		setInput(newInput);
 		setPartName(file.getName());
+		editor.setFilePath(((FileEditorInput) newInput).getPath().toString());
 		doSave(new NullProgressMonitor());
 	}
 

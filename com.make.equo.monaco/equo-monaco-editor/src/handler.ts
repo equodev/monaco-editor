@@ -304,6 +304,7 @@ export class EquoMonacoEditor {
 			this.editor.setValue(content);
 			this.clearDirtyState();
 			this.setTextLabel("");
+			this.notifyChanges();
 		});
 
 		this.webSocket.on(this.namespace + "_selectAndReveal", (values: { offset: number; length: number }) => {
