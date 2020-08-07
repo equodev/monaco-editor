@@ -180,7 +180,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 					EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
 					editor = builder.withParent(parent).withStyle(parent.getStyle()).withContents(textContent)
-							.withFileName(fileInput.getURI().toString()).withLSP(lspProxy).create();
+							.withFilePath(fileInput.getURI().toString()).withLSP(lspProxy).create();
 					documentProvider = new MonacoEditorDocumentProvider(editor);
 
 					editorConfigs();

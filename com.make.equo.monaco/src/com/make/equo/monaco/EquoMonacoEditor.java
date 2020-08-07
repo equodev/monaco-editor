@@ -92,12 +92,14 @@ public class EquoMonacoEditor {
 	public void initialize(String contents, String fileName, String filePath) {
 		this.filePath = filePath;
 		this.fileName = fileName;
-		handleCreateEditor(contents, fileName, null);
+		handleCreateEditor(contents, null);
 	}
 
-	protected void createEditor(String contents, String fileName, LspProxy lsp) {
-		if (fileName.startsWith("file:")) {
-			setFilePath(fileName.substring(5));
+	protected void createEditor(String contents, String filePath, LspProxy lsp) {
+		if (filePath.startsWith("file:")) {
+			setFilePath(filePath.substring(5));
+		}else {
+			setFilePath(filePath);
 		}
 		String lspPathAux = null;
 		if (lsp != null) {
@@ -105,7 +107,7 @@ public class EquoMonacoEditor {
 			lspPathAux = "ws://127.0.0.1:" + lsp.getPort();
 		}
 		final String lspPath = lspPathAux;
-		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(contents, fileName, lspPath));
+		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(contents, lspPath));
 	}
 
 	protected String getLspServerForFile(String fileName) {
@@ -122,8 +124,8 @@ public class EquoMonacoEditor {
 		return lspWsServers.getOrDefault(extension, null);
 	}
 
-	protected void handleCreateEditor(String contents, String fileName, String fixedLspPath) {
-		String lspPath = (fixedLspPath != null) ? fixedLspPath : getLspServerForFile(fileName);
+	protected void handleCreateEditor(String contents, String fixedLspPath) {
+		String lspPath = (fixedLspPath != null) ? fixedLspPath : getLspServerForFile(this.fileName);
 		if (lspPath != null && this.lspProxy != null) {
 			try {
 				new Thread(() -> lspProxy.startServer()).start();
@@ -132,7 +134,7 @@ public class EquoMonacoEditor {
 		}
 		Map<String, String> editorData = new HashMap<String, String>();
 		editorData.put("text", contents);
-		editorData.put("name", fileName);
+		editorData.put("name", this.filePath);
 		editorData.put("namespace", namespace);
 		editorData.put("lspPath", lspPath);
 		equoEventHandler.send("_doCreateEditor", editorData);
