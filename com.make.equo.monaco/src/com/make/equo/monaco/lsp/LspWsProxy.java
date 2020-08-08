@@ -10,6 +10,8 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 public class LspWsProxy extends WebSocketServer {
+	private static final String CONTENT_LENGTH = "Content-Length: ";
+	private static final int SIZE_STRING_CONTENT_LENGTH = CONTENT_LENGTH.length();
 	private static final int ASCII_0 = 48;
 	private static final int READING_HEADER_STATE = 0;
 	private static final int READING_CONTENT_LENGTH_STATE = 1;
@@ -24,7 +26,8 @@ public class LspWsProxy extends WebSocketServer {
 		redirectThread = new Thread(() -> {
 			int state = 0;
 			int lengthMessage = 0;
-			StringBuilder builder = null;
+			StringBuilder builderMessage = null;
+			StringBuilder builderHeader = new StringBuilder();
 			int lengthReaded = 0;
 			try {
 				while (true) {
@@ -32,7 +35,9 @@ public class LspWsProxy extends WebSocketServer {
 					int readed = streamIn.read();
 					switch (state) {
 					case READING_HEADER_STATE:
-						if ((char) readed == ' ') {
+						builderHeader.append((char) readed);
+						final int lastIndexOf = builderHeader.lastIndexOf(CONTENT_LENGTH);
+						if (lastIndexOf >= 0 && lastIndexOf == builderHeader.length() - SIZE_STRING_CONTENT_LENGTH) {
 							state++;
 						}
 						break;
@@ -45,18 +50,19 @@ public class LspWsProxy extends WebSocketServer {
 						break;
 					case SEARCHING_START_MESSAGE_STATE:
 						if ((char) readed == '{') {
-							builder = new StringBuilder();
-							builder.append((char) readed);
+							builderMessage = new StringBuilder(lengthMessage);
+							builderMessage.append((char) readed);
 							state++;
 							lengthReaded++;
 						}
 						break;
 					case READING_MESSAGE_STATE:
-						builder.append((char) readed);
+						builderMessage.append((char) readed);
 						if (++lengthReaded == lengthMessage) {
-							broadcast(builder.toString());
+							broadcast(builderMessage.toString());
 							lengthReaded = 0;
 							lengthMessage = 0;
+							builderHeader = new StringBuilder();
 							state = READING_HEADER_STATE;
 						}
 					}
@@ -93,7 +99,7 @@ public class LspWsProxy extends WebSocketServer {
 		new Thread(() -> {
 			try {
 				synchronized (streamOut) {
-					String fullMessage = "Content-Length: " + message.getBytes().length + "\r\n\r\n" + message;
+					String fullMessage = CONTENT_LENGTH + message.getBytes().length + "\r\n\r\n" + message;
 					byte[] bytes = fullMessage.getBytes();
 					streamOut.write(bytes);
 					streamOut.flush();
