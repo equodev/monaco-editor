@@ -44,8 +44,6 @@ public class MonacoEditorIntegrationTest {
 	@Before
 	public void before() {
 		System.setProperty("swt.chromium.debug", "true");
-		System.setProperty("swt.chromium.args",
-				"--proxy-server=localhost:9896;--ignore-certificate-errors;--allow-file-access-from-files;--disable-web-security;--enable-widevine-cdm;--proxy-bypass-list=127.0.0.1");
 		display = rule.getDisplay();
 		display.syncExec(() -> {
 			Shell shell = rule.createShell();
