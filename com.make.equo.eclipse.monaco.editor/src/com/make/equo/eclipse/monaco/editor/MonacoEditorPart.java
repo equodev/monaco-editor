@@ -38,6 +38,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.dialogs.SaveAsDialog;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
@@ -287,7 +288,15 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			clipboard.dispose();
 			return (textData != null);
 		});
-		findAction = new EditorAction(() -> editor.find());
+		findAction = new EditorAction(() -> {
+			try {
+				IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
+				handlerService.executeCommand("com.make.equo.eclipse.monaco.editor.LSFindReferences", null);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
 		findAction.setEnabled(true);
 		selectAllAction = new EditorAction(() -> editor.selectAll());
 		selectAllAction.setEnabled(true);
