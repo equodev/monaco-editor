@@ -304,7 +304,19 @@ export class EquoMonacoEditor {
 			this.editor.setValue(content);
 			this.clearDirtyState();
 			this.setTextLabel("");
+			this.notifyChanges();
 		});
+
+		this.webSocket.on(this.namespace + "_selectAndReveal", (values: { offset: number; length: number }) => {
+			let position = this.model.getPositionAt(values.offset);
+			let positionEnd = this.model.getPositionAt(values.offset + values.length);
+			let range = {startLineNumber: position.lineNumber, startColumn: position.column,
+				endLineNumber: positionEnd.lineNumber, endColumn: positionEnd.column};
+			this.editor.setPosition(position);
+			this.editor.revealRangeInCenter(range);
+			this.editor.setSelection(range);
+		});
+
 	}
 
 	private notifyChanges(): void {

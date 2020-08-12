@@ -7,6 +7,7 @@ import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +17,6 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.google.gson.JsonObject;
 import com.make.equo.filesystem.api.IEquoFileSystem;
+import com.make.equo.monaco.lsp.CommonLspProxy;
 import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.ws.api.IEquoEventHandler;
 import com.make.equo.ws.api.IEquoRunnable;
@@ -36,8 +37,9 @@ import com.make.equo.ws.api.IEquoWebSocketService;
 public class EquoMonacoEditor {
 	protected IEquoFileSystem equoFileSystem;
 
-	private static LspProxy lspProxy = new LspProxy();
-	private static Map<String, String> lspServers = new HashMap<>();
+	private LspProxy lspProxy = null;
+	private static Map<String, List<String>> lspServers = new HashMap<>();
+	private static Map<String, String> lspWsServers = new HashMap<>();
 
 	private volatile boolean loaded;
 
@@ -55,23 +57,25 @@ public class EquoMonacoEditor {
 		return filePath;
 	}
 
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+		this.fileName = new File(this.filePath).getName();
+		listenChangesPath();
+	}
+
 	protected IEquoEventHandler equoEventHandler;
 
 	public EquoMonacoEditor(Composite parent, int style, IEquoEventHandler handler,
-			IEquoWebSocketService websocketService) {
-		this(handler);
+			IEquoWebSocketService websocketService, IEquoFileSystem equoFileSystem) {
+		this(handler, equoFileSystem);
 		browser = new Browser(parent, style);
 		String wsPort = String.format("&equowsport=%s", String.valueOf(websocketService.getPort()));
 		browser.setUrl("http://" + EQUO_MONACO_CONTRIBUTION_NAME + "?namespace=" + namespace + wsPort);
 	}
 
 	public EquoMonacoEditor(IEquoEventHandler handler, IEquoFileSystem equoFileSystem) {
-		this(handler);
-		this.equoFileSystem = equoFileSystem;
-	}
-
-	public EquoMonacoEditor(IEquoEventHandler handler) {
 		this.equoEventHandler = handler;
+		this.equoFileSystem = equoFileSystem;
 		namespace = "editor" + Double.toHexString(Math.random());
 		onLoadListeners = new ArrayList<IEquoRunnable<Void>>();
 		loaded = false;
@@ -88,11 +92,22 @@ public class EquoMonacoEditor {
 	public void initialize(String contents, String fileName, String filePath) {
 		this.filePath = filePath;
 		this.fileName = fileName;
-		handleCreateEditor(contents, fileName);
+		handleCreateEditor(contents, null);
 	}
 
-	protected void createEditor(String contents, String fileName) {
-		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(contents, fileName));
+	protected void createEditor(String contents, String filePath, LspProxy lsp) {
+		if (filePath.startsWith("file:")) {
+			setFilePath(filePath.substring(5));
+		}else {
+			setFilePath(filePath);
+		}
+		String lspPathAux = null;
+		if (lsp != null) {
+			this.lspProxy = lsp;
+			lspPathAux = "ws://127.0.0.1:" + lsp.getPort();
+		}
+		final String lspPath = lspPathAux;
+		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(contents, lspPath));
 	}
 
 	protected String getLspServerForFile(String fileName) {
@@ -101,16 +116,27 @@ public class EquoMonacoEditor {
 		if (i > 0) {
 			extension = fileName.substring(i + 1);
 		}
-		return lspServers.getOrDefault(extension, null);
+		List<String> lspProgram = lspServers.getOrDefault(extension, null);
+		if (lspProgram != null) {
+			this.lspProxy = new CommonLspProxy(lspProgram);
+			return "ws://127.0.0.1:" + this.lspProxy.getPort();
+		}
+		return lspWsServers.getOrDefault(extension, null);
 	}
 
-	protected void handleCreateEditor(String contents, String fileName) {
-		new Thread(() -> lspProxy.startServer()).start();
+	protected void handleCreateEditor(String contents, String fixedLspPath) {
+		String lspPath = (fixedLspPath != null) ? fixedLspPath : getLspServerForFile(this.fileName);
+		if (lspPath != null && this.lspProxy != null) {
+			try {
+				new Thread(() -> lspProxy.startServer()).start();
+			} catch (Exception e) {
+			}
+		}
 		Map<String, String> editorData = new HashMap<String, String>();
 		editorData.put("text", contents);
-		editorData.put("name", fileName);
+		editorData.put("name", this.filePath);
 		editorData.put("namespace", namespace);
-		editorData.put("lspPath", getLspServerForFile(fileName));
+		editorData.put("lspPath", lspPath);
 		equoEventHandler.send("_doCreateEditor", editorData);
 		loaded = true;
 		for (IEquoRunnable<Void> onLoadListener : onLoadListeners) {
@@ -156,11 +182,12 @@ public class EquoMonacoEditor {
 		}
 	}
 
-	public void getContentsSync(IEquoRunnable<String> runnable) {
+	public String getContentsSync() {
+		String[] result = { null };
 		if (lock.tryAcquire()) {
 			equoEventHandler.on(namespace + "_doGetContents", (JsonObject contents) -> {
 				try {
-					runnable.run(contents.get("contents").getAsString());
+					result[0] = contents.get("contents").getAsString();
 				} finally {
 					synchronized (lock) {
 						lock.notify();
@@ -178,6 +205,7 @@ public class EquoMonacoEditor {
 				}
 			}
 		}
+		return result[0];
 	}
 
 	public void getContentsAsync(IEquoRunnable<String> runnable) {
@@ -237,6 +265,7 @@ public class EquoMonacoEditor {
 					File file = equoFileSystem.saveFileAs(content);
 					if (file != null) {
 						filePath = file.getAbsolutePath();
+						notifyFilePathChanged();
 						handleAfterSave();
 						listenChangesPath();
 					}
@@ -296,6 +325,8 @@ public class EquoMonacoEditor {
 						key = watchService.take();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
+					} catch (ClosedWatchServiceException e) {
+						break;
 					}
 					for (WatchEvent<?> event : key.pollEvents()) {
 						if (event.context().toString().trim().equals(fileName)) {
@@ -330,6 +361,19 @@ public class EquoMonacoEditor {
 		String content = getFileContent();
 		if (content != null) {
 			equoEventHandler.send(namespace + "_doReload", content);
+		}
+	}
+
+	public void selectAndReveal(int offset, int length) {
+		Map<String, Integer> data = new HashMap<>();
+		data.put("offset", offset);
+		data.put("length", length);
+		if (loaded) {
+			equoEventHandler.send(namespace + "_selectAndReveal", data);
+		} else {
+			addOnLoadListener((IEquoRunnable<Void>) runnable -> {
+				equoEventHandler.send(namespace + "_selectAndReveal", data);
+			});
 		}
 	}
 
@@ -369,7 +413,7 @@ public class EquoMonacoEditor {
 	 */
 	public static void addLspWsServer(String fullServerPath, Collection<String> extensions) {
 		for (String extension : extensions) {
-			lspServers.put(extension, fullServerPath);
+			lspWsServers.put(extension, fullServerPath);
 		}
 	}
 
@@ -386,8 +430,7 @@ public class EquoMonacoEditor {
 	 */
 	public static void addLspServer(List<String> executionParameters, Collection<String> extensions) {
 		for (String extension : extensions) {
-			lspProxy.addServer(extension, executionParameters);
-			addLspWsServer("ws://127.0.0.1:" + lspProxy.getPort() + "/" + extension, Collections.singleton(extension));
+			lspServers.put(extension, executionParameters);
 		}
 	}
 
@@ -399,9 +442,9 @@ public class EquoMonacoEditor {
 	 *                   not have the initial dot. Example: ["php", "php4"]
 	 */
 	public static void removeLspServer(Collection<String> extensions) {
-		lspProxy.removeServer(extensions);
 		for (String extension : extensions) {
 			lspServers.remove(extension);
+			lspWsServers.remove(extension);
 		}
 	}
 
