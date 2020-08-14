@@ -179,6 +179,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 							setInput(newInput);
 							initializeNewInput(newInput);
 							editor.setFilePath(newInput.getPath().toString());
+							editor.setRootPath(file.getProject().getLocation().toString());
 						}
 					}
 				}
@@ -251,7 +252,9 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			Collection<LanguageServerWrapper> wrappers = LanguageServiceAccessor.getLSWrappers(file, null);
 			if (!wrappers.isEmpty()) {
 				LanguageServerWrapper lspServer = wrappers.iterator().next();
-				return new EclipseLspProxy(lspServer);
+				EclipseLspProxy lsp = new EclipseLspProxy(lspServer);
+				lsp.setRootPath(file.getProject().getLocation().toString());
+				return lsp;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

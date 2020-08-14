@@ -57,6 +57,12 @@ public class EquoMonacoEditor {
 		return filePath;
 	}
 
+	public void setRootPath(String rootPath) {
+		if (lspProxy != null) {
+			lspProxy.setRootPath(rootPath);
+		}
+	}
+
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
 		this.fileName = new File(this.filePath).getName();
