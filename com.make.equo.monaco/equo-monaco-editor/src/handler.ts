@@ -237,7 +237,11 @@ export class EquoMonacoEditor {
 
 	private bindEquoFunctions(): void {
 		this.editor.onDidChangeCursorSelection((e: any) => {
-			this.webSocket.send(this.namespace + "_selection", e.selection);
+			let selection = e.selection;
+			let offsetStart = this.model.getOffsetAt({lineNumber: selection.startLineNumber, column: selection.startColumn});
+			let offsetEnd = this.model.getOffsetAt({lineNumber: selection.endLineNumber, column: selection.endColumn});
+			let length = offsetEnd - offsetStart;
+			this.webSocket.send(this.namespace + "_selection", {offset: offsetStart, length: length});
 		});
 
 		this.webSocket.on(this.namespace + "_filePathChanged", (values: { path: string; name: string }) => {

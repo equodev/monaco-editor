@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.swt.chromium.Browser;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -391,10 +392,11 @@ public class EquoMonacoEditor {
 		}
 	}
 
-	public void configSelection(IEquoRunnable<Boolean> selectionFunction) {
+	public void configSelection(IEquoRunnable<TextSelection> selectionFunction) {
 		equoEventHandler.on(namespace + "_selection", (JsonObject contents) -> {
-			selectionFunction.run(contents.get("endColumn").getAsInt() != contents.get("startColumn").getAsInt()
-					|| contents.get("endLineNumber").getAsInt() != contents.get("startLineNumber").getAsInt());
+			TextSelection textSelection = new TextSelection(contents.get("offset").getAsInt(),
+					contents.get("length").getAsInt());
+			selectionFunction.run(textSelection);
 		});
 	}
 

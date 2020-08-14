@@ -19,8 +19,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.TextSelection;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.lsp4e.LanguageServerWrapper;
@@ -273,8 +271,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 		editor.configSelection((selection) -> {
 			Display.getDefault().asyncExec(() -> {
-				ISelection iSelection = (selection) ? new TextSelection(0, 1) : new TextSelection(0, -1);
-				selectionProvider.setSelection(iSelection);
+				selectionProvider.setSelection(selection);
 			});
 		});
 	}

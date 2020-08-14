@@ -21,6 +21,8 @@ Private-Package: \
 	org.eclipse.lsp4e,\
 	org.eclipse.equinox.common,\
 	org.eclipse.osgi,\
+	org.eclipse.jface.text,\
+	org.eclipse.jface.text.source,\
 	org.eclipse.swt,\
 	org.eclipse.swt.cocoa.macosx.x86_64,\
 	org.eclipse.swt.cocoa.macosx.x86_64.source,\
