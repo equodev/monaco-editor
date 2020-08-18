@@ -29,6 +29,7 @@ public class EquoMonacoEditorWidgetBuilder {
 	private String contents;
 	private String filePath;
 	private LspProxy lsp;
+	private String rootPath;
 
 	public EquoMonacoEditorWidgetBuilder() {
 		this.style = -1;
@@ -61,12 +62,18 @@ public class EquoMonacoEditorWidgetBuilder {
 		return this;
 	}
 
+	public EquoMonacoEditorWidgetBuilder withRootPath(String rootPath) {
+		this.rootPath = rootPath;
+		return this;
+	}
+
 	public EquoMonacoEditor create() {
 		if (style == -1) {
 			style = parent.getStyle();
 		}
 		EquoMonacoEditor editor = new EquoMonacoEditor(parent, style, equoEventHandler, websocketService,
 				equoFileSystem);
+		editor.setRootPath(rootPath);
 		editor.createEditor(contents, filePath, lsp);
 		return editor;
 	}

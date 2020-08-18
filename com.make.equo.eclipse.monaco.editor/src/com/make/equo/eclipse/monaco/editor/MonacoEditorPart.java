@@ -153,6 +153,10 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		return true;
 	}
 
+	private String getRootPath(IFile file) {
+		return file.getProject().getLocation().toString();
+	}
+
 	private void initializeNewInput(IEditorInput input) {
 		setPartName(input.getName());
 		if (input instanceof FileEditorInput) {
@@ -177,10 +181,11 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 							setInput(newInput);
 							initializeNewInput(newInput);
 							editor.setFilePath(newInput.getPath().toString());
-							editor.setRootPath(file.getProject().getLocation().toString());
+							editor.setRootPath(getRootPath(file));
 						}
 					}
 				}
+
 			});
 		}
 	}
@@ -192,9 +197,10 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		if (input instanceof FileEditorInput) {
 			FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
-			LspProxy lspProxy = getLspProxy(fileInput.getFile());
+			IFile file = fileInput.getFile();
+			LspProxy lspProxy = getLspProxy(file);
 
-			try (InputStream contents = fileInput.getFile().getContents()) {
+			try (InputStream contents = file.getContents()) {
 				int singleByte;
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				while ((singleByte = contents.read()) != -1) {
@@ -214,7 +220,8 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 					EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
 					editor = builder.withParent(parent).withStyle(parent.getStyle()).withContents(textContent)
-							.withFilePath(fileInput.getURI().toString()).withLSP(lspProxy).create();
+							.withFilePath(fileInput.getURI().toString()).withLSP(lspProxy)
+							.withRootPath(getRootPath(file)).create();
 					documentProvider = new MonacoEditorDocumentProvider(editor);
 
 					editorConfigs();
@@ -250,9 +257,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			Collection<LanguageServerWrapper> wrappers = LanguageServiceAccessor.getLSWrappers(file, null);
 			if (!wrappers.isEmpty()) {
 				LanguageServerWrapper lspServer = wrappers.iterator().next();
-				EclipseLspProxy lsp = new EclipseLspProxy(lspServer);
-				lsp.setRootPath(file.getProject().getLocation().toString());
-				return lsp;
+				return new EclipseLspProxy(lspServer);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

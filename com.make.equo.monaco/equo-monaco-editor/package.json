@@ -14,10 +14,10 @@
     "dependencies": {
         "@equo/websocket": "^0.1.0",
         "monaco-editor": "^0.20.0",
-        "monaco-languageclient": "^0.11.0",
+        "monaco-languageclient": "^0.13.0",
         "normalize-url": "^5.0.0",
         "reconnecting-websocket": "^3.2.2",
-        "vscode-ws-jsonrpc": "^0.1.1"
+        "vscode-ws-jsonrpc": "^0.2.0"
     },
     "scripts": {
         "prepare": "yarn run clean && yarn run build",

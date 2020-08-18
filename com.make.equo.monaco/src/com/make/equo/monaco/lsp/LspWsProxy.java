@@ -11,11 +11,6 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 public class LspWsProxy extends WebSocketServer {
 	private static final String CONTENT_LENGTH = "Content-Length: ";
 	private static final int SIZE_STRING_CONTENT_LENGTH = CONTENT_LENGTH.length();
@@ -26,13 +21,11 @@ public class LspWsProxy extends WebSocketServer {
 	private static final int READING_MESSAGE_STATE = 3;
 	private OutputStream streamOut;
 	private Thread redirectThread = null;
-	private String rootPath;
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 
-	public LspWsProxy(int port, InputStream streamIn, OutputStream streamOut, String rootPath) {
+	public LspWsProxy(int port, InputStream streamIn, OutputStream streamOut) {
 		super(new InetSocketAddress(port));
 		this.streamOut = streamOut;
-		this.rootPath = rootPath;
 		redirectThread = new Thread(() -> {
 			int state = 0;
 			int lengthMessage = 0;
@@ -109,8 +102,7 @@ public class LspWsProxy extends WebSocketServer {
 	@Override
 	public void onMessage(WebSocket conn, String message) {
 		executorService.submit(() -> {
-			String messageToSend = parseMessage(message);
-			String fullMessage = CONTENT_LENGTH + messageToSend.getBytes().length + "\r\n\r\n" + messageToSend;
+			String fullMessage = CONTENT_LENGTH + message.getBytes().length + "\r\n\r\n" + message;
 			final byte[] bytes = fullMessage.getBytes();
 			try {
 				synchronized (streamOut) {
@@ -121,26 +113,6 @@ public class LspWsProxy extends WebSocketServer {
 				e.printStackTrace();
 			}
 		});
-	}
-
-	private String parseMessage(String message) {
-		JsonParser parser = new JsonParser();
-		JsonObject tree = parser.parse(message).getAsJsonObject();
-		JsonElement methodElement = tree.get("method");
-		if (methodElement != null && methodElement.getAsString().equals("initialize")) {
-			JsonObject params = tree.get("params").getAsJsonObject();
-			params.addProperty("rootPath", rootPath);
-			params.addProperty("rootUri", "file://" + rootPath);
-			try {
-				JsonObject publishDiagnostics = params.get("capabilities").getAsJsonObject().get("textDocument")
-						.getAsJsonObject().get("publishDiagnostics").getAsJsonObject();
-				// Remove "tagSupport" as it has conflicts with Java LSP
-				publishDiagnostics.remove("tagSupport");
-			} catch (Exception e) {
-			}
-			return new Gson().toJson(tree);
-		}
-		return message;
 	}
 
 	@Override

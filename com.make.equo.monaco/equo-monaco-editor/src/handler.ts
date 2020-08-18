@@ -82,7 +82,7 @@ export class EquoMonacoEditor {
 	}
 
 	public create(element: HTMLElement, filePath?: string): void {
-		this.webSocket.on("_doCreateEditor", (values: { text: string; name: string; namespace: string; lspPath?: string }) => {
+		this.webSocket.on("_doCreateEditor", (values: { text: string; name: string; namespace: string; lspPath?: string; rootUri?: string }) => {
 			if (!this.wasCreated) {
 				this.namespace = values.namespace;
 				this.fileName = name;
@@ -124,7 +124,7 @@ export class EquoMonacoEditor {
 				this.bindEquoFunctions();
 
 				if (values.lspPath) {
-					MonacoServices.install(this.editor);
+					MonacoServices.install(this.editor, {rootUri: values.rootUri});
 
 					// create the web socket
 					var url = normalizeUrl(values.lspPath)

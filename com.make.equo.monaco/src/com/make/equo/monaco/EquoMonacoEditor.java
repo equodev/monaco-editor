@@ -53,15 +53,14 @@ public class EquoMonacoEditor {
 	private boolean dispose = false;
 	private String fileName = "";
 	private WatchService watchService;
+	private String rootPath = null;
 
 	public String getFilePath() {
 		return filePath;
 	}
 
 	public void setRootPath(String rootPath) {
-		if (lspProxy != null) {
-			lspProxy.setRootPath(rootPath);
-		}
+		this.rootPath = rootPath;
 	}
 
 	public void setFilePath(String filePath) {
@@ -144,6 +143,7 @@ public class EquoMonacoEditor {
 		editorData.put("name", this.filePath);
 		editorData.put("namespace", namespace);
 		editorData.put("lspPath", lspPath);
+		editorData.put("rootUri", "file://" + this.rootPath);
 		equoEventHandler.send("_doCreateEditor", editorData);
 		loaded = true;
 		for (IEquoRunnable<Void> onLoadListener : onLoadListeners) {

@@ -9,11 +9,6 @@ public abstract class LspProxy {
 	private int proxyPort;
 	private ServerSocket socketPortReserve;
 	protected LspWsProxy proxy;
-	private String rootPath = null;
-
-	public void setRootPath(String rootPath) {
-		this.rootPath = rootPath;
-	}
 
 	public LspProxy() {
 		proxyPort = reservePortForProxy(0);
@@ -33,7 +28,7 @@ public abstract class LspProxy {
 
 	protected void startProxy(InputStream streamIn, OutputStream streamOut) {
 		closeSocketPortReserve();
-		proxy = new LspWsProxy(getPort(), streamIn, streamOut, rootPath);
+		proxy = new LspWsProxy(getPort(), streamIn, streamOut);
 		proxy.start();
 	}
 
