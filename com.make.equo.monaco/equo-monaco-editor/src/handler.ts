@@ -7,6 +7,8 @@ const normalizeUrl = require('normalize-url');
 const ReconnectingWebSocket = require('reconnecting-websocket');
 import * as monaco from 'monaco-editor';
 import { EquoWebSocketService, EquoWebSocket } from '@equo/websocket'
+// @ts-ignore
+import { StandaloneCodeEditorServiceImpl } from 'monaco-editor/esm/vs/editor/standalone/browser/standaloneCodeServiceImpl.js'
 
 export class EquoMonacoEditor {
 
@@ -115,6 +117,12 @@ export class EquoMonacoEditor {
 					},
 					automaticLayout: true
 				});
+
+				let ws = this.webSocket;
+				StandaloneCodeEditorServiceImpl.prototype.doOpenEditor = function (editor: any, input: any) {
+					ws.send("_openCodeEditor", { path: input.resource.path, selection: input.options.selection });
+					return null;
+				};
 
 				if (this.shortcutsAdded) {
 					this.activateShortcuts();
