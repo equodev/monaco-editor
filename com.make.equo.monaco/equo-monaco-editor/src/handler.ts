@@ -116,6 +116,22 @@ export class EquoMonacoEditor {
 						enabled: true
 					},
 					automaticLayout: true
+				}, { textModelService: {
+						createModelReference: function(uri: monaco.Uri) {
+							const textEditorModel = {
+								load() {
+								return Promise.resolve(textEditorModel)
+								},
+								dispose() {},
+								textEditorModel: monaco.editor.getModel(uri)
+							}
+							return Promise.resolve({
+								object: textEditorModel,
+								dispose() {}
+							})
+						},
+						registerTextModelContentProvider: () => ({ dispose: () => {} })
+					}
 				});
 
 				let ws = this.webSocket;
