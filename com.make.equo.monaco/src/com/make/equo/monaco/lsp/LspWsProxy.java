@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -22,6 +23,7 @@ public class LspWsProxy extends WebSocketServer {
 	private OutputStream streamOut;
 	private Thread redirectThread = null;
 	private ExecutorService executorService = Executors.newCachedThreadPool();
+	private final AtomicBoolean finish = new AtomicBoolean(false);
 
 	public LspWsProxy(int port, InputStream streamIn, OutputStream streamOut) {
 		super(new InetSocketAddress(port));
@@ -36,6 +38,9 @@ public class LspWsProxy extends WebSocketServer {
 				while (true) {
 					// Block of read message
 					int readed = streamIn.read();
+					if (finish.get()) {
+						return;
+					}
 					switch (state) {
 						case READING_HEADER_STATE:
 							builderHeader.append((char) readed);
@@ -78,11 +83,9 @@ public class LspWsProxy extends WebSocketServer {
 		redirectThread.start();
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void stop() throws IOException, InterruptedException {
-		if (redirectThread != null)
-			redirectThread.stop();
+		finish.set(true);
 		super.stop();
 		executorService.shutdown();
 	}
