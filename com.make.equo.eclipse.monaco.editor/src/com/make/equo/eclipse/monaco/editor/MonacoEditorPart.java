@@ -296,7 +296,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		findAction = new EditorAction(() -> {
 			try {
 				IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
-				handlerService.executeCommand("com.make.equo.eclipse.monaco.editor.LSFindReferences", null);
+				handlerService.executeCommand("com.make.equo.eclipse.monaco.editor.rename", null);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

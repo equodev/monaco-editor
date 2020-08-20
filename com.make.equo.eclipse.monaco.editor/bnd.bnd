@@ -54,15 +54,21 @@ Import-Package: com.make.equo.monaco,\
 	org.eclipse.debug.core,\
 	org.eclipse.debug.core.source,\
 	org.eclipse.search,\
-	org.eclipse.search.source
+	org.eclipse.search.source,\
+	org.eclipse.ltk.core.refactoring,\
+	org.eclipse.ltk.core.refactoring.source,\
+	org.eclipse.ltk.ui.refactoring,\
+	org.eclipse.ltk.ui.refactoring.source,\
+	org.eclipse.lsp4j.jsonrpc,\
+	org.eclipse.lsp4j.jsonrpc.source,\
+	org.eclipse.lsp4j.source
 -includeresource: resources/
 -runbundles: \
 	ch.qos.logback.classic;version='[1.1.2,1.1.3)',\
 	ch.qos.logback.core;version='[1.1.2,1.1.3)',\
 	ch.qos.logback.slf4j;version='[1.1.2,1.1.3)',\
 	com.google.gson;version='[2.8.2,2.8.3)',\
-	com.google.guava;version='[20.0.0,20.0.1)',\
-	com.google.guava;version='[27.1.0,27.1.1)',\
+	com.google.guava;version='[21.0.0,21.0.1)',\
 	io.netty.all;version='[4.0.44,4.0.45)',\
 	org.apache.commons.lang3;version='[3.5.0,3.5.1)',\
 	org.apache.felix.scr;version='[2.1.14,2.1.15)',\
@@ -84,7 +90,6 @@ Import-Package: com.make.equo.monaco,\
 	slf4j.api;version='[1.7.25,1.7.26)',\
 	com.make.equo.server.provider;version='[0.1.6,0.1.7)',\
 	com.make.equo.ws.provider;version='[0.1.6,0.1.7)',\
-	com.google.guava;version='[21.0.0,21.0.1)',\
 	com.ibm.icu;version='[64.2.0,64.2.1)',\
 	com.make.equo.aer.api;version=snapshot,\
 	com.make.equo.contribution.api;version=snapshot,\
@@ -190,5 +195,8 @@ Import-Package: com.make.equo.monaco,\
 	org.w3c.css.sac;version='[1.3.1,1.3.2)',\
 	org.w3c.dom.events;version='[3.0.0,3.0.1)',\
 	org.w3c.dom.smil;version='[1.0.1,1.0.2)',\
-	org.w3c.dom.svg;version='[1.1.0,1.1.1)'
+	org.w3c.dom.svg;version='[1.1.0,1.1.1)',\
+	org.eclipse.jst.jsp.core,\
+	org.eclipse.jst.jsp.ui,\
+	org.eclipse.jst.jsp.ui.infopop
 -runrequires: osgi.identity;filter:='(osgi.identity=com.make.equo.monaco)'
