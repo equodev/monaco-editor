@@ -36,13 +36,11 @@ import org.eclipse.lsp4j.RenameOptions;
 import org.eclipse.lsp4j.RenameParams;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
-import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError;
 import org.eclipse.lsp4j.services.LanguageServer;
-import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
@@ -175,7 +173,7 @@ public class LSPRenameProcessor extends RefactoringProcessor {
 			params.setNewName(newName);
 			if (params.getNewName() != null) {
 				// TODO: how to manage ltk with CompletableFuture? Is 1000 ms is enough?
-				rename = languageServer.getTextDocumentService().rename(params).get(1000, TimeUnit.MILLISECONDS);
+				rename = languageServer.getTextDocumentService().rename(params).get(10000, TimeUnit.MILLISECONDS);
 				if (!status.hasError() && rename.getChanges().isEmpty()) {
 					status.addWarning(Messages.rename_empty_message);
 				}

@@ -279,6 +279,16 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 				selectionProvider.setSelection(selection);
 			});
 		});
+		editor.configRename((empty) -> {
+			Display.getDefault().asyncExec(() -> {
+				try {
+					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
+					handlerService.executeCommand("com.make.equo.eclipse.monaco.editor.rename", null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+		});
 	}
 
 	private void createActions() {
@@ -293,15 +303,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			clipboard.dispose();
 			return (textData != null);
 		});
-		findAction = new EditorAction(() -> {
-			try {
-				IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
-				handlerService.executeCommand("com.make.equo.eclipse.monaco.editor.rename", null);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
+		findAction = new EditorAction(() -> editor.find());
 		findAction.setEnabled(true);
 		selectAllAction = new EditorAction(() -> editor.selectAll());
 		selectAllAction.setEnabled(true);

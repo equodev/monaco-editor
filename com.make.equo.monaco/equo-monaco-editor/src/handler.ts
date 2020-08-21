@@ -9,6 +9,8 @@ import * as monaco from 'monaco-editor';
 import { EquoWebSocketService, EquoWebSocket } from '@equo/websocket'
 // @ts-ignore
 import { StandaloneCodeEditorServiceImpl } from 'monaco-editor/esm/vs/editor/standalone/browser/standaloneCodeServiceImpl.js'
+// @ts-ignore
+import { RenameAction } from 'monaco-editor/esm/vs/editor/contrib/rename/rename.js'
 
 export class EquoMonacoEditor {
 
@@ -137,6 +139,11 @@ export class EquoMonacoEditor {
 				let ws = this.webSocket;
 				StandaloneCodeEditorServiceImpl.prototype.doOpenEditor = function (editor: any, input: any) {
 					ws.send("_openCodeEditor", { path: input.resource.path, selection: input.options.selection });
+					return null;
+				};
+				let namespace = values.namespace;
+				RenameAction.prototype.runCommand = function (accessor: any, args: any) {
+					ws.send(namespace + "_makeRename");
 					return null;
 				};
 

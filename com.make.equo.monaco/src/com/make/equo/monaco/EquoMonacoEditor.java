@@ -95,6 +95,10 @@ public class EquoMonacoEditor {
 		equoEventHandler.on(namespace + "_doReload", (IEquoRunnable<Void>) runnable -> reload());
 	}
 
+	public void configRename(IEquoRunnable<Void> runnable) {
+		equoEventHandler.on(namespace + "_makeRename", runnable);
+	}
+
 	public void initialize(String contents, String fileName, String filePath) {
 		this.filePath = filePath;
 		this.fileName = fileName;
