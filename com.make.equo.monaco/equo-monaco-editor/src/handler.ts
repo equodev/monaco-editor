@@ -342,6 +342,15 @@ export class EquoMonacoEditor {
 			this.notifyChanges();
 		});
 
+		this.webSocket.on(this.namespace + "_setContent", (content: string) => {
+			this.editor.setValue(content);
+			if (!this.isDirty()){
+				this.lastSavedVersionId = this.lastSavedVersionId - 1;
+			}
+			this.setTextLabel("");
+			this.notifyChanges();
+		});
+
 		this.webSocket.on(this.namespace + "_selectAndReveal", (values: { offset: number; length: number }) => {
 			let position = this.model.getPositionAt(values.offset);
 			let positionEnd = this.model.getPositionAt(values.offset + values.length);
@@ -357,7 +366,8 @@ export class EquoMonacoEditor {
 	private notifyChanges(): void {
 		if (this.sendChangesToJavaSide) {
 			this.webSocket.send(this.namespace + "_changesNotification",
-				{ isDirty: this.lastSavedVersionId !== this.model.getAlternativeVersionId(), canRedo: (this.model as any).canRedo(), canUndo: (this.model as any).canUndo() });
+				{ isDirty: this.lastSavedVersionId !== this.model.getAlternativeVersionId(), canRedo: (this.model as any).canRedo(),
+					canUndo: (this.model as any).canUndo(), content: this.editor.getValue() });
 		}
 		this.notifyChangeCallback();
 	}

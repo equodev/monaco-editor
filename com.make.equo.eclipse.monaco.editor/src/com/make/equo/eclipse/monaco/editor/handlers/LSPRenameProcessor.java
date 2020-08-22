@@ -103,7 +103,7 @@ public class LSPRenameProcessor extends RefactoringProcessor {
 		}
 		try {
 			CompletableFuture<List<LanguageServer>> serverList = LanguageServiceAccessor.getLanguageServers(document, LSPRenameProcessor::isPrepareRenameProvider) ;
-			for (LanguageServer serverToTry : serverList.get(500, TimeUnit.MILLISECONDS)) {
+			for (LanguageServer serverToTry : serverList.get(2000, TimeUnit.MILLISECONDS)) {
 				// check if prepareRename is supported by the active LSP
 				if (languageServer.equals(serverToTry)) {
 //					TextDocumentIdentifier identifier = new TextDocumentIdentifier(LSPEclipseUtils.toUri(document).toString());
@@ -172,8 +172,7 @@ public class LSPRenameProcessor extends RefactoringProcessor {
 			params.setTextDocument(identifier);
 			params.setNewName(newName);
 			if (params.getNewName() != null) {
-				// TODO: how to manage ltk with CompletableFuture? Is 1000 ms is enough?
-				rename = languageServer.getTextDocumentService().rename(params).get(10000, TimeUnit.MILLISECONDS);
+				rename = languageServer.getTextDocumentService().rename(params).get(2000, TimeUnit.MILLISECONDS);
 				if (!status.hasError() && rename.getChanges().isEmpty()) {
 					status.addWarning(Messages.rename_empty_message);
 				}

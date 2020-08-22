@@ -7,6 +7,11 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collection;
 
+import org.eclipse.core.filebuffers.FileBuffers;
+import org.eclipse.core.filebuffers.IFileBuffer;
+import org.eclipse.core.filebuffers.IFileBufferListener;
+import org.eclipse.core.filebuffers.ITextFileBuffer;
+import org.eclipse.core.filebuffers.LocationKind;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -18,6 +23,10 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.AbstractDocument;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.window.Window;
@@ -77,6 +86,13 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	private EditorAction cutAction;
 	private EditorAction pasteAction;
 	private EditorAction findAction;
+
+	private IFileBufferListener ownFileBufferListener = null;
+	private IDocumentListener ownDocumentListener = null;
+	private IDocument ownDocument = null;
+
+	private ITextFileBuffer fileBuffer;
+	private boolean reload = true;
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
@@ -162,6 +178,12 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		if (input instanceof FileEditorInput) {
 			final FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
+			IFile file = fileInput.getFile();
+			fileBuffer = FileBuffers.getTextFileBufferManager().getTextFileBuffer(file.getFullPath(),
+					LocationKind.IFILE);
+			if (fileBuffer != null) {
+				registerDocumentListener(fileBuffer.getDocument());
+			}
 			ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
 				@Override
 				public void resourceChanged(final IResourceChangeEvent event) {
@@ -192,55 +214,154 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		System.setProperty("swt.chromium.debug", "true");
 		IEditorInput input = getEditorInput();
-		initializeNewInput(input);
 		if (input instanceof FileEditorInput) {
 			FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
 			IFile file = fileInput.getFile();
+			registerFileBufferListener(file);
+			initializeNewInput(input);
 			LspProxy lspProxy = getLspProxy(file);
-
-			try (InputStream contents = file.getContents()) {
-				int singleByte;
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				while ((singleByte = contents.read()) != -1) {
-					baos.write(singleByte);
-					;
-				}
-
-				String textContent = new String(baos.toByteArray());
-
-				try {
-					BundleContext bndContext = FrameworkUtil.getBundle(EquoMonacoEditorWidgetBuilder.class)
-							.getBundleContext();
-					activateNeededServices(bndContext);
-
-					ServiceReference<EquoMonacoEditorWidgetBuilder> svcReference = bndContext
-							.getServiceReference(EquoMonacoEditorWidgetBuilder.class);
-
-					EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
-					editor = builder.withParent(parent).withStyle(parent.getStyle()).withContents(textContent)
-							.withFilePath(fileInput.getURI().toString()).withLSP(lspProxy)
-							.withRootPath(getRootPath(file)).create();
-					documentProvider = new MonacoEditorDocumentProvider(editor);
-
-					editorConfigs();
-
-					getSite().setSelectionProvider(selectionProvider);
-
-					createActions();
-					activateActions();
-				} catch (Exception e) {
+			String textContent = null;
+			if (fileBuffer != null) {
+				textContent = ownDocument.get();
+			}else {
+				try (InputStream contents = file.getContents()) {
+					int singleByte;
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					while ((singleByte = contents.read()) != -1) {
+						baos.write(singleByte);
+					}
+					textContent = new String(baos.toByteArray());
+				} catch (CoreException | IOException e) {
 					e.printStackTrace();
-					System.out.println("Couldn't retrieve Monaco Editor service");
 				}
-			} catch (CoreException | IOException e) {
-				// TODO Auto-generated catch block
+			}
+
+			try {
+				BundleContext bndContext = FrameworkUtil.getBundle(EquoMonacoEditorWidgetBuilder.class)
+						.getBundleContext();
+				activateNeededServices(bndContext);
+
+				ServiceReference<EquoMonacoEditorWidgetBuilder> svcReference = bndContext
+						.getServiceReference(EquoMonacoEditorWidgetBuilder.class);
+
+				EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
+				editor = builder.withParent(parent).withStyle(parent.getStyle()).withContents(textContent)
+						.withFilePath(fileInput.getURI().toString()).withLSP(lspProxy)
+						.withRootPath(getRootPath(file)).create();
+				documentProvider = new MonacoEditorDocumentProvider(editor);
+				editorConfigs();
+
+				getSite().setSelectionProvider(selectionProvider);
+
+				createActions();
+				activateActions();
+			} catch (Exception e) {
 				e.printStackTrace();
+				System.out.println("Couldn't retrieve Monaco Editor service");
 			}
 
 		}
 
+	}
+
+	private void registerDocumentListener(IDocument document) {
+		if (ownDocumentListener != null) {
+			ownDocument.removeDocumentListener(ownDocumentListener);
+		}
+		ownDocumentListener = new IDocumentListener() {
+			@Override
+			public void documentAboutToBeChanged(DocumentEvent event) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void documentChanged(DocumentEvent event) {
+				if (reload)
+					editor.setContent(fileBuffer.getDocument().get());
+			}
+		};
+		document.addDocumentListener(ownDocumentListener);
+		ownDocument = document;
+	}
+	
+	private void registerFileBufferListener(IFile file) {
+		if (ownFileBufferListener != null) {
+			FileBuffers.getTextFileBufferManager().removeFileBufferListener(ownFileBufferListener);
+		}
+		ownFileBufferListener = new IFileBufferListener() {
+
+			@Override
+			public void bufferCreated(IFileBuffer buffer) {
+				if (file.getLocation().toPortableString().endsWith(buffer.getLocation().toPortableString())) {
+					if (buffer instanceof ITextFileBuffer) {
+						fileBuffer = (ITextFileBuffer) buffer;
+						registerDocumentListener(fileBuffer.getDocument());
+					}
+				}
+			}
+
+			@Override
+			public void bufferDisposed(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void bufferContentAboutToBeReplaced(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void bufferContentReplaced(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void stateChanging(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void dirtyStateChanged(IFileBuffer buffer, boolean isDirty) {
+				if (file.getLocation().toPortableString().endsWith(buffer.getLocation().toPortableString())) {
+					if (reload)
+						editor.setContent(ownDocument.get());
+				}
+			}
+
+			@Override
+			public void stateValidationChanged(IFileBuffer buffer, boolean isStateValidated) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void underlyingFileMoved(IFileBuffer buffer, IPath path) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void underlyingFileDeleted(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void stateChangeFailed(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		};
+		FileBuffers.getTextFileBufferManager().addFileBufferListener(ownFileBufferListener);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -272,7 +393,14 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		IEquoRunnable<Boolean> undoListener = (canUndo) -> {
 			undoAction.setEnabled(canUndo);
 		};
-		editor.subscribeChanges(dirtyListener, undoListener, redoListener);
+		IEquoRunnable<String> contentChangeListener = (content) -> {
+			if (ownDocument != null) {
+				reload = false;
+				ownDocument.set(content);
+				reload = true;
+			}
+		};
+		editor.subscribeChanges(dirtyListener, undoListener, redoListener, contentChangeListener);
 
 		editor.configSelection((selection) -> {
 			Display.getDefault().asyncExec(() -> {
@@ -330,6 +458,9 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	@Override
 	public void dispose() {
 		super.dispose();
+		if (ownFileBufferListener != null) {
+			FileBuffers.getTextFileBufferManager().removeFileBufferListener(ownFileBufferListener);
+		}
 		editor.dispose();
 	}
 

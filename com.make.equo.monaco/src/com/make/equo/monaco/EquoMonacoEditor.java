@@ -405,11 +405,12 @@ public class EquoMonacoEditor {
 	}
 
 	public void subscribeChanges(IEquoRunnable<Boolean> dirtyListener, IEquoRunnable<Boolean> undoListener,
-			IEquoRunnable<Boolean> redoListener) {
+			IEquoRunnable<Boolean> redoListener, IEquoRunnable<String> contentChangeListener) {
 		equoEventHandler.on(namespace + "_changesNotification", (JsonObject changes) -> {
 			dirtyListener.run(changes.get("isDirty").getAsBoolean());
 			undoListener.run(changes.get("canUndo").getAsBoolean());
 			redoListener.run(changes.get("canRedo").getAsBoolean());
+			contentChangeListener.run(changes.get("content").getAsString());
 		});
 
 		if (loaded) {
@@ -471,6 +472,10 @@ public class EquoMonacoEditor {
 	public void dispose() {
 		lspProxy.stopServer();
 		dispose = true;
+	}
+
+	public void setContent(String content) {
+		equoEventHandler.send(namespace + "_setContent", content);
 	}
 
 }
