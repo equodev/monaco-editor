@@ -23,7 +23,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.text.AbstractDocument;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
@@ -223,44 +222,46 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			registerFileBufferListener(file);
 			initializeNewInput(input);
 			LspProxy lspProxy = getLspProxy(file);
-			String textContent = null;
-			if (fileBuffer != null) {
-				textContent = ownDocument.get();
-			}else {
-				try (InputStream contents = file.getContents()) {
-					int singleByte;
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					while ((singleByte = contents.read()) != -1) {
-						baos.write(singleByte);
-					}
-					textContent = new String(baos.toByteArray());
-				} catch (CoreException | IOException e) {
-					e.printStackTrace();
+
+			try (InputStream contents = file.getContents()) {
+				int singleByte;
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				while ((singleByte = contents.read()) != -1) {
+					baos.write(singleByte);
 				}
-			}
+				String textContent = new String(baos.toByteArray());
 
-			try {
-				BundleContext bndContext = FrameworkUtil.getBundle(EquoMonacoEditorWidgetBuilder.class)
-						.getBundleContext();
-				activateNeededServices(bndContext);
+				try {
+					BundleContext bndContext = FrameworkUtil.getBundle(EquoMonacoEditorWidgetBuilder.class)
+							.getBundleContext();
+					activateNeededServices(bndContext);
 
-				ServiceReference<EquoMonacoEditorWidgetBuilder> svcReference = bndContext
-						.getServiceReference(EquoMonacoEditorWidgetBuilder.class);
+					ServiceReference<EquoMonacoEditorWidgetBuilder> svcReference = bndContext
+							.getServiceReference(EquoMonacoEditorWidgetBuilder.class);
 
-				EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
-				editor = builder.withParent(parent).withStyle(parent.getStyle()).withContents(textContent)
-						.withFilePath(fileInput.getURI().toString()).withLSP(lspProxy)
-						.withRootPath(getRootPath(file)).create();
-				documentProvider = new MonacoEditorDocumentProvider(editor);
-				editorConfigs();
+					EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
+					editor = builder.withParent(parent).withStyle(parent.getStyle()).withContents(textContent)
+							.withFilePath(fileInput.getURI().toString()).withLSP(lspProxy)
+							.withRootPath(getRootPath(file)).create();
+					documentProvider = new MonacoEditorDocumentProvider(editor);
+					editorConfigs();
+					if (fileBuffer != null) {
+						String textContentFileBuffer = ownDocument.get();
+						if (!textContentFileBuffer.equals(textContent)) {
+							editor.setContent(textContentFileBuffer);
+						}
+					}
 
-				getSite().setSelectionProvider(selectionProvider);
+					getSite().setSelectionProvider(selectionProvider);
 
-				createActions();
-				activateActions();
-			} catch (Exception e) {
+					createActions();
+					activateActions();
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println("Couldn't retrieve Monaco Editor service");
+				}
+			} catch (CoreException | IOException e) {
 				e.printStackTrace();
-				System.out.println("Couldn't retrieve Monaco Editor service");
 			}
 
 		}

@@ -153,6 +153,7 @@ public class EquoMonacoEditor {
 		for (IEquoRunnable<Void> onLoadListener : onLoadListeners) {
 			onLoadListener.run(null);
 		}
+		onLoadListeners.clear();
 
 		equoEventHandler.on(namespace + "_canPaste", (IEquoRunnable<Void>) runnable -> {
 			try {
@@ -475,7 +476,13 @@ public class EquoMonacoEditor {
 	}
 
 	public void setContent(String content) {
-		equoEventHandler.send(namespace + "_setContent", content);
+		if (loaded) {
+			equoEventHandler.send(namespace + "_setContent", content);
+		} else {
+			addOnLoadListener((IEquoRunnable<Void>) runnable -> {
+				equoEventHandler.send(namespace + "_setContent", content);
+			});
+		}
 	}
 
 }
