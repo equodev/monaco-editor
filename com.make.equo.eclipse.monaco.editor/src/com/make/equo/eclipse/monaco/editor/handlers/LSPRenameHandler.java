@@ -15,6 +15,7 @@ package com.make.equo.eclipse.monaco.editor.handlers;
  *  Vincent Lorenzo (CEA LIST) vincent.lorenzo@cea.fr - Bug 564839
  *******************************************************************************/
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -29,6 +30,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.lsp4e.LSPEclipseUtils;
 import org.eclipse.lsp4e.LanguageServerPlugin;
 import org.eclipse.lsp4e.LanguageServiceAccessor;
+import org.eclipse.lsp4j.InitializeParams;
+import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.RenameOptions;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -67,6 +70,12 @@ public class LSPRenameHandler extends AbstractHandler implements IHandler {
 					}
 					int offset = textSelection.getOffset();
 					int length = textSelection.getLength();
+					CompletableFuture<InitializeResult> initialization = languageServers.get(0).initialize(new InitializeParams());
+					try {
+						initialization.get();
+					} catch (InterruptedException | java.util.concurrent.ExecutionException e) {
+						e.printStackTrace();
+					}
 					RefactoringProcessor processor = new LSPRenameProcessor(document, languageServers.get(0), offset, length);
 					ProcessorBasedRefactoring refactoring = new ProcessorBasedRefactoring(processor);
 					LSPRenameRefactoringWizard wizard = new LSPRenameRefactoringWizard(refactoring);
