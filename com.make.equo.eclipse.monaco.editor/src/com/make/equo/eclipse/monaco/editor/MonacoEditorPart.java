@@ -67,11 +67,6 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 	private volatile boolean isDirty = false;
 
-	private IEquoRunnable<Boolean> dirtyListener = (isDirty) -> {
-		this.isDirty = isDirty;
-		firePropertyChange(PROP_DIRTY);
-	};
-
 	private EquoMonacoEditor editor;
 	private IDocumentProvider documentProvider;
 
@@ -104,7 +99,6 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 							monitor);
 					editor.handleAfterSave();
 				} catch (CoreException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			});
@@ -200,8 +194,9 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 							FileEditorInput newInput = new FileEditorInput(file);
 							setInput(newInput);
 							initializeNewInput(newInput);
-							editor.setFilePath(newInput.getPath().toString());
+							LspProxy lspProxy = getLspProxy(file);
 							editor.setRootPath(getRootPath(file));
+							editor.setFilePath(newInput.getPath().toString());
 						}
 					}
 				}
@@ -280,7 +275,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			@Override
 			public void documentAboutToBeChanged(DocumentEvent event) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
@@ -292,7 +287,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		document.addDocumentListener(ownDocumentListener);
 		ownDocument = document;
 	}
-	
+
 	private void registerFileBufferListener(IFile file) {
 		if (ownFileBufferListener != null) {
 			FileBuffers.getTextFileBufferManager().removeFileBufferListener(ownFileBufferListener);
@@ -312,25 +307,25 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			@Override
 			public void bufferDisposed(IFileBuffer buffer) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void bufferContentAboutToBeReplaced(IFileBuffer buffer) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void bufferContentReplaced(IFileBuffer buffer) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void stateChanging(IFileBuffer buffer) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
@@ -344,27 +339,27 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			@Override
 			public void stateValidationChanged(IFileBuffer buffer, boolean isStateValidated) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void underlyingFileMoved(IFileBuffer buffer, IPath path) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void underlyingFileDeleted(IFileBuffer buffer) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void stateChangeFailed(IFileBuffer buffer) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 		};
 		FileBuffers.getTextFileBufferManager().addFileBufferListener(ownFileBufferListener);
 	}
@@ -392,6 +387,11 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	}
 
 	private void editorConfigs() {
+		IEquoRunnable<Boolean> dirtyListener = (isDirty) -> {
+			this.isDirty = isDirty;
+			firePropertyChange(PROP_DIRTY);
+		};
+
 		IEquoRunnable<Boolean> redoListener = (canRedo) -> {
 			redoAction.setEnabled(canRedo);
 		};
@@ -468,6 +468,8 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		}
 		editor.dispose();
 	}
+
+	// ITextEditor methods:
 
 	@Override
 	public IDocumentProvider getDocumentProvider() {
