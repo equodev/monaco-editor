@@ -166,61 +166,63 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	}
 
 	private void initializeNewInput(IEditorInput input) {
-		setPartName(input.getName());
-		if (input instanceof FileEditorInput) {
-			final FileEditorInput fileInput = (FileEditorInput) input;
-			setTitleToolTip(fileInput.getPath().toString());
-			IFile file = fileInput.getFile();
-			registerFileBufferListener(file);
-			ownDocument = null;
-			fileBuffer = FileBuffers.getTextFileBufferManager().getTextFileBuffer(file.getFullPath(),
-					LocationKind.IFILE);
-			if (fileBuffer != null) {
-				registerDocumentListener(fileBuffer.getDocument());
-			}
-			ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
-				@Override
-				public void resourceChanged(final IResourceChangeEvent event) {
-					IResourceDelta delta = event.getDelta();
+		Display.getDefault().syncExec(() -> {
+			setPartName(input.getName());
+			if (input instanceof FileEditorInput) {
+				final FileEditorInput fileInput = (FileEditorInput) input;
+				setTitleToolTip(fileInput.getPath().toString());
+				IFile file = fileInput.getFile();
+				registerFileBufferListener(file);
+				ownDocument = null;
+				fileBuffer = FileBuffers.getTextFileBufferManager().getTextFileBuffer(file.getFullPath(),
+						LocationKind.IFILE);
+				if (fileBuffer != null) {
+					registerDocumentListener(fileBuffer.getDocument());
+				}
+				ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
+					@Override
+					public void resourceChanged(final IResourceChangeEvent event) {
+						IResourceDelta delta = event.getDelta();
 
-					delta = delta.findMember(fileInput.getFile().getFullPath());
-					if (delta == null)
-						return;
+						delta = delta.findMember(fileInput.getFile().getFullPath());
+						if (delta == null)
+							return;
 
-					if (delta.getKind() == IResourceDelta.REMOVED) {
-						if ((delta.getFlags() & IResourceDelta.MOVED_TO) != 0) {
-							IWorkspace workspace = ResourcesPlugin.getWorkspace();
-							workspace.removeResourceChangeListener(this);
-							IPath newPath = delta.getMovedToPath();
-							IFile file = workspace.getRoot().getFile(newPath);
-							FileEditorInput newInput = new FileEditorInput(file);
-							setInput(newInput);
-							initializeNewInput(newInput);
-							LspProxy lspProxy = getLspProxy(file);
-							try (InputStream contents = file.getContents()) {
-								int singleByte;
-								ByteArrayOutputStream baos = new ByteArrayOutputStream();
-								while ((singleByte = contents.read()) != -1) {
-									baos.write(singleByte);
-								}
-								String textContent = new String(baos.toByteArray());
-								if (fileBuffer != null) {
-									String textContentFileBuffer = ownDocument.get();
-									if (!textContentFileBuffer.equals(textContent)) {
-										textContent = textContentFileBuffer;
+						if (delta.getKind() == IResourceDelta.REMOVED) {
+							if ((delta.getFlags() & IResourceDelta.MOVED_TO) != 0) {
+								IWorkspace workspace = ResourcesPlugin.getWorkspace();
+								workspace.removeResourceChangeListener(this);
+								IPath newPath = delta.getMovedToPath();
+								IFile file = workspace.getRoot().getFile(newPath);
+								FileEditorInput newInput = new FileEditorInput(file);
+								setInput(newInput);
+								initializeNewInput(newInput);
+								LspProxy lspProxy = getLspProxy(file);
+								try (InputStream contents = file.getContents()) {
+									int singleByte;
+									ByteArrayOutputStream baos = new ByteArrayOutputStream();
+									while ((singleByte = contents.read()) != -1) {
+										baos.write(singleByte);
 									}
+									String textContent = new String(baos.toByteArray());
+									if (fileBuffer != null) {
+										String textContentFileBuffer = ownDocument.get();
+										if (!textContentFileBuffer.equals(textContent)) {
+											textContent = textContentFileBuffer;
+										}
+									}
+									editor.reInitialize(textContent, newInput.getPath().toString(), getRootPath(file),
+											lspProxy);
+								} catch (IOException | CoreException e) {
+									e.printStackTrace();
 								}
-								editor.reInitialize(textContent, newInput.getPath().toString(), getRootPath(file),
-										lspProxy);
-							} catch (IOException | CoreException e) {
-								e.printStackTrace();
 							}
 						}
 					}
-				}
 
-			});
-		}
+				});
+			}
+		});
 	}
 
 	@Override
@@ -475,7 +477,10 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	@Override
 	public void setFocus() {
 		getSite().setSelectionProvider(selectionProvider);
-		activateActions();
+		try {
+			activateActions();
+		} catch (Exception e) {
+		}
 	}
 
 	@Override

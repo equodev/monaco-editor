@@ -106,14 +106,8 @@ public class LSPRenameProcessor extends RefactoringProcessor {
 			for (LanguageServer serverToTry : serverList.get(2000, TimeUnit.MILLISECONDS)) {
 				// check if prepareRename is supported by the active LSP
 				if (languageServer.equals(serverToTry)) {
-//					TextDocumentIdentifier identifier = new TextDocumentIdentifier(LSPEclipseUtils.toUri(document).toString());
-//					TextDocumentPositionParams params = new TextDocumentPositionParams();
-//					params.setTextDocument(identifier);
 					final Position startPosition = LSPEclipseUtils.toPosition(offset, document);
 					final Position endPosition = LSPEclipseUtils.toPosition(offset + length, document);
-//					params.setPosition(startPosition);
-//					TextDocumentService textDocumentService = languageServer.getTextDocumentService();
-//					prepareRenameResult = textDocumentService.prepareRename(params).get(1000, TimeUnit.MILLISECONDS);
 					prepareRenameResult = Either.forLeft(new Range(startPosition, endPosition));
 					if (prepareRenameResult == null) {
 						status.addFatalError(Messages.rename_invalidated);
