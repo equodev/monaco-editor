@@ -1,4 +1,4 @@
-package com.make.equo.monaco;
+package com.make.equo.eclipse.monaco.editor;
 
 import java.io.File;
 
@@ -23,12 +23,14 @@ import org.osgi.service.component.annotations.ServiceScope;
 
 import com.google.gson.JsonObject;
 import com.make.equo.filesystem.api.IEquoFileSystem;
+import com.make.equo.monaco.AbstractEquoMonacoEditorBuilder;
+import com.make.equo.monaco.EquoMonacoEditor;
 import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.ws.api.IEquoEventHandler;
 import com.make.equo.ws.api.IEquoWebSocketService;
 
 @Component(service = EquoMonacoEditorWidgetBuilder.class, scope = ServiceScope.PROTOTYPE)
-public class EquoMonacoEditorWidgetBuilder {
+public class EquoMonacoEditorWidgetBuilder extends AbstractEquoMonacoEditorBuilder {
 
 	@Reference
 	private IEquoEventHandler equoEventHandler;
@@ -89,7 +91,7 @@ public class EquoMonacoEditorWidgetBuilder {
 		EquoMonacoEditor editor = new EquoMonacoEditor(parent, style, equoEventHandler, websocketService,
 				equoFileSystem);
 		editor.setRootPath(rootPath);
-		editor.createEditor(contents, filePath, lsp);
+		createEditor(editor, contents, filePath, lsp);
 		return editor;
 	}
 
