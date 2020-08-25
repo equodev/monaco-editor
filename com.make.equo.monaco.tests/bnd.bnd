@@ -50,6 +50,8 @@ Test-Cases: ${classes;CONCRETE;PUBLIC;NAMED;*Test}
     org.eclipse.e4.ui.workbench.renderers.swt;version='[0.14.900,0.14.901)',\
     org.eclipse.swt.chromium.64b,\
     org.eclipse.swt.chromium.gtk.linux.x86_64,\
+    org.eclipse.jface.text,\
+    org.eclipse.text,\
     com.make.chromium.cef.gtk.linux.x86_64,\
     org.influxdb.java;version='[2.9.0,2.9.1)',\
     com.squareup.moshi;version='[1.4.0,1.4.1)',\
