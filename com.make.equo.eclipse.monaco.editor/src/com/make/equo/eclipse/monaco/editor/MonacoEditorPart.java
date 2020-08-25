@@ -171,6 +171,8 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			final FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
 			IFile file = fileInput.getFile();
+			registerFileBufferListener(file);
+			ownDocument = null;
 			fileBuffer = FileBuffers.getTextFileBufferManager().getTextFileBuffer(file.getFullPath(),
 					LocationKind.IFILE);
 			if (fileBuffer != null) {
@@ -195,8 +197,24 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 							setInput(newInput);
 							initializeNewInput(newInput);
 							LspProxy lspProxy = getLspProxy(file);
-							editor.setRootPath(getRootPath(file));
-							editor.setFilePath(newInput.getPath().toString());
+							try (InputStream contents = file.getContents()) {
+								int singleByte;
+								ByteArrayOutputStream baos = new ByteArrayOutputStream();
+								while ((singleByte = contents.read()) != -1) {
+									baos.write(singleByte);
+								}
+								String textContent = new String(baos.toByteArray());
+								if (fileBuffer != null) {
+									String textContentFileBuffer = ownDocument.get();
+									if (!textContentFileBuffer.equals(textContent)) {
+										textContent = textContentFileBuffer;
+									}
+								}
+								editor.reInitialize(textContent, newInput.getPath().toString(), getRootPath(file),
+										lspProxy);
+							} catch (IOException | CoreException e) {
+								e.printStackTrace();
+							}
 						}
 					}
 				}
@@ -213,7 +231,6 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
 			IFile file = fileInput.getFile();
-			registerFileBufferListener(file);
 			initializeNewInput(input);
 			LspProxy lspProxy = getLspProxy(file);
 
@@ -378,6 +395,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			Collection<LanguageServerWrapper> wrappers = LanguageServiceAccessor.getLSWrappers(file, null);
 			if (!wrappers.isEmpty()) {
 				LanguageServerWrapper lspServer = wrappers.iterator().next();
+				lspServer.getInitializedServer();
 				return new EclipseLspProxy(lspServer);
 			}
 		} catch (IOException e) {

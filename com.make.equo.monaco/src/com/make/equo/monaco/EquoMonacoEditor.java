@@ -71,6 +71,7 @@ public class EquoMonacoEditor {
 		this.filePath = filePath;
 		this.fileName = new File(this.filePath).getName();
 		listenChangesPath();
+		notifyFilePathChanged();
 	}
 
 	public EquoMonacoEditor(Composite parent, int style, IEquoEventHandler handler,
@@ -101,6 +102,30 @@ public class EquoMonacoEditor {
 		equoEventHandler.on(namespace + "_makeRename", runnable);
 	}
 
+	public void reInitialize(String content, String filePath, String rootPath, LspProxy lsp) {
+		if (filePath.startsWith("file:")) {
+			setFilePath(filePath.substring(5));
+		} else {
+			setFilePath(filePath);
+		}
+		String lspPath = null;
+		if (lsp != null) {
+			this.lspProxy = lsp;
+			lspPath = "ws://127.0.0.1:" + lsp.getPort();
+			this.lspProxy.startServer();
+		}
+		setRootPath(rootPath);
+
+		Map<String, String> editorData = new HashMap<String, String>();
+		editorData.put("text", content);
+		editorData.put("name", this.filePath);
+		editorData.put("lspPath", lspPath);
+		if (this.rootPath != null) {
+			editorData.put("rootUri", "file://" + this.rootPath);
+		}
+		equoEventHandler.send(this.namespace + "_doReinitialization", editorData);
+	}
+
 	public void initialize(String contents, String fileName, String filePath) {
 		this.filePath = filePath;
 		this.fileName = fileName;
@@ -115,6 +140,8 @@ public class EquoMonacoEditor {
 			setFilePath(filePath);
 		}
 		String lspPathAux = null;
+		if (this.lspProxy != null)
+			this.lspProxy.stopServer();
 		if (lsp != null) {
 			this.lspProxy = lsp;
 			lspPathAux = "ws://127.0.0.1:" + lsp.getPort();
@@ -150,7 +177,9 @@ public class EquoMonacoEditor {
 		editorData.put("name", this.filePath);
 		editorData.put("namespace", namespace);
 		editorData.put("lspPath", lspPath);
-		editorData.put("rootUri", "file://" + this.rootPath);
+		if (this.rootPath != null) {
+			editorData.put("rootUri", "file://" + this.rootPath);
+		}
 		equoEventHandler.send("_doCreateEditor", editorData);
 		loaded = true;
 		for (IEquoRunnable<Void> onLoadListener : onLoadListeners) {
@@ -477,7 +506,8 @@ public class EquoMonacoEditor {
 	}
 
 	public void dispose() {
-		lspProxy.stopServer();
+		if (lspProxy != null)
+			lspProxy.stopServer();
 		dispose = true;
 	}
 

@@ -85,32 +85,89 @@ export class EquoMonacoEditor {
 		this.notifyChangeCallback = callback;
 	}
 
+	private createModelAndGetLanguage(file: string, content: string): string{
+		let l = this.getLanguageOfFile(file);
+		let language = '';
+
+		if (l) {
+			monaco.languages.register(l);
+			language = l.id;
+		} else {
+			language = 'userdefinedlanguage'
+			monaco.languages.register({
+				id: language
+			});
+		}
+		this.model = monaco.editor.createModel(
+			content,
+			language,
+			monaco.Uri.file(file) // uri
+		);
+		return language;
+	}
+
+	private connectLsp(lspPath: string | undefined, rootUri: string | undefined, language: string): void{
+		if (lspPath) {
+			MonacoServices.install(this.editor, {rootUri: rootUri});
+
+			// create the web socket
+			var url = normalizeUrl(lspPath)
+			this.lspws = createWebSocket(url);
+			var webSocket = this.lspws;
+			// listen when the web socket is opened
+			listen({
+				webSocket,
+				onConnection: connection => {
+					// create and start the language client
+					this.languageClient = createLanguageClient(connection);
+					var disposable = this.languageClient.start();
+					connection.onClose(() => disposable.dispose());
+				}
+			});
+		}
+
+		function createLanguageClient(connection: MessageConnection): MonacoLanguageClient {
+			return new MonacoLanguageClient({
+				name: "Sample Language Client",
+				clientOptions: {
+					// use a language id as a document selector
+					documentSelector: [language],
+					// disable the default error handler
+					errorHandler: {
+						error: () => ErrorAction.Continue,
+						closed: () => CloseAction.DoNotRestart
+					}
+				},
+				// create a language client connection from the JSON RPC connection on demand
+				connectionProvider: {
+					get: (errorHandler, closeHandler) => {
+						return Promise.resolve(createConnection(connection, errorHandler, closeHandler));
+					}
+				}
+			});
+		}
+
+		function createWebSocket(url: string): WebSocket {
+			const socketOptions = {
+				maxReconnectionDelay: 10000,
+				minReconnectionDelay: 1000,
+				reconnectionDelayGrowFactor: 1.3,
+				connectionTimeout: 10000,
+				maxRetries: Infinity,
+				debug: false
+			};
+			return new ReconnectingWebSocket(url, [], socketOptions);
+		}
+	}
+
 	public create(element: HTMLElement, filePath?: string): void {
 		this.webSocket.on("_doCreateEditor", (values: { text: string; name: string; namespace: string; lspPath?: string; rootUri?: string }) => {
 			if (!this.wasCreated) {
 				this.namespace = values.namespace;
-				this.fileName = name;
-
-				let l = this.getLanguageOfFile(values.name);
-				let language = '';
-
-				if (l) {
-					monaco.languages.register(l);
-					language = l.id;
-				} else {
-					language = 'userdefinedlanguage'
-					monaco.languages.register({
-						id: language
-					});
-				}
 
 				element.appendChild(this.elemdiv);
 
-				this.model = monaco.editor.createModel(
-					values.text,
-					language,
-					monaco.Uri.file(values.name) // uri
-				);
+				let language = this.createModelAndGetLanguage(values.name, values.text);
 
 				this.editor = monaco.editor.create(element, {
 					model: this.model,
@@ -154,58 +211,7 @@ export class EquoMonacoEditor {
 				this.clearDirtyState();
 				this.bindEquoFunctions();
 
-				if (values.lspPath) {
-					MonacoServices.install(this.editor, {rootUri: values.rootUri});
-
-					// create the web socket
-					var url = normalizeUrl(values.lspPath)
-					this.lspws = createWebSocket(url);
-					var webSocket = this.lspws;
-					// listen when the web socket is opened
-					listen({
-						webSocket,
-						onConnection: connection => {
-							// create and start the language client
-							this.languageClient = createLanguageClient(connection);
-							var disposable = this.languageClient.start();
-							connection.onClose(() => disposable.dispose());
-						}
-					});
-				}
-
-
-				function createLanguageClient(connection: MessageConnection): MonacoLanguageClient {
-					return new MonacoLanguageClient({
-						name: "Sample Language Client",
-						clientOptions: {
-							// use a language id as a document selector
-							documentSelector: [language],
-							// disable the default error handler
-							errorHandler: {
-								error: () => ErrorAction.Continue,
-								closed: () => CloseAction.DoNotRestart
-							}
-						},
-						// create a language client connection from the JSON RPC connection on demand
-						connectionProvider: {
-							get: (errorHandler, closeHandler) => {
-								return Promise.resolve(createConnection(connection, errorHandler, closeHandler));
-							}
-						}
-					});
-				}
-
-				function createWebSocket(url: string): WebSocket {
-					const socketOptions = {
-						maxReconnectionDelay: 10000,
-						minReconnectionDelay: 1000,
-						reconnectionDelayGrowFactor: 1.3,
-						connectionTimeout: 10000,
-						maxRetries: Infinity,
-						debug: false
-					};
-					return new ReconnectingWebSocket(url, [], socketOptions);
-				}
+				this.connectLsp(values.lspPath, values.rootUri, language);
 
 				this.wasCreated = true;
 				this.editor.onDidChangeModelContent(() => {
@@ -273,6 +279,25 @@ export class EquoMonacoEditor {
 			let offsetEnd = this.model.getOffsetAt({lineNumber: selection.endLineNumber, column: selection.endColumn});
 			let length = offsetEnd - offsetStart;
 			this.webSocket.send(this.namespace + "_selection", {offset: offsetStart, length: length});
+		});
+
+		this.webSocket.on(this.namespace + "_doReinitialization", (values: { text: string; name: string; lspPath?: string; rootUri?: string }) => {
+			this.fileName = name;
+
+			this.model.dispose();
+			let language = this.createModelAndGetLanguage(values.name, values.text);
+
+			this.editor.setModel(this.model);
+			this.setTextLabel("");
+
+			if (this.lspws) {
+				//@ts-ignore
+				this.lspws.close(1000, '', { keepClosed: true, fastClose: true, delay: 0 });
+			}
+			if (this.languageClient)
+				this.languageClient.stop();
+
+			this.connectLsp(values.lspPath, values.rootUri, language);
 		});
 
 		this.webSocket.on(this.namespace + "_filePathChanged", (values: { path: string; name: string }) => {
