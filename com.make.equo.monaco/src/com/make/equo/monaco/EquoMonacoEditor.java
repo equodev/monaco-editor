@@ -55,6 +55,10 @@ public class EquoMonacoEditor {
 	private WatchService watchService;
 	private String rootPath = null;
 
+	protected IEquoEventHandler equoEventHandler;
+
+	private String initialContent;
+
 	public String getFilePath() {
 		return filePath;
 	}
@@ -68,8 +72,6 @@ public class EquoMonacoEditor {
 		this.fileName = new File(this.filePath).getName();
 		listenChangesPath();
 	}
-
-	protected IEquoEventHandler equoEventHandler;
 
 	public EquoMonacoEditor(Composite parent, int style, IEquoEventHandler handler,
 			IEquoWebSocketService websocketService, IEquoFileSystem equoFileSystem) {
@@ -105,10 +107,11 @@ public class EquoMonacoEditor {
 		handleCreateEditor(contents, null);
 	}
 
-	protected void createEditor(String contents, String filePath, LspProxy lsp) {
+	protected void createEditor(String content, String filePath, LspProxy lsp) {
+		this.initialContent = content;
 		if (filePath.startsWith("file:")) {
 			setFilePath(filePath.substring(5));
-		}else {
+		} else {
 			setFilePath(filePath);
 		}
 		String lspPathAux = null;
@@ -117,7 +120,7 @@ public class EquoMonacoEditor {
 			lspPathAux = "ws://127.0.0.1:" + lsp.getPort();
 		}
 		final String lspPath = lspPathAux;
-		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(contents, lspPath));
+		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(content, lspPath));
 	}
 
 	protected String getLspServerForFile(String fileName) {
@@ -195,6 +198,9 @@ public class EquoMonacoEditor {
 	}
 
 	public String getContentsSync() {
+		if (!loaded) {
+			return this.initialContent;
+		}
 		String[] result = { null };
 		if (lock.tryAcquire()) {
 			equoEventHandler.on(namespace + "_doGetContents", (JsonObject contents) -> {

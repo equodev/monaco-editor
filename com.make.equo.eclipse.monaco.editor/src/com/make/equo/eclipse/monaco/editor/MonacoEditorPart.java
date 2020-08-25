@@ -229,6 +229,14 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 					baos.write(singleByte);
 				}
 				String textContent = new String(baos.toByteArray());
+				boolean setContentDirty = false;
+				if (fileBuffer != null) {
+					String textContentFileBuffer = ownDocument.get();
+					if (!textContentFileBuffer.equals(textContent)) {
+						textContent = textContentFileBuffer;
+						setContentDirty = true;
+					}
+				}
 
 				try {
 					BundleContext bndContext = FrameworkUtil.getBundle(EquoMonacoEditorWidgetBuilder.class)
@@ -244,11 +252,8 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 							.withRootPath(getRootPath(file)).create();
 					documentProvider = new MonacoEditorDocumentProvider(editor);
 					editorConfigs();
-					if (fileBuffer != null) {
-						String textContentFileBuffer = ownDocument.get();
-						if (!textContentFileBuffer.equals(textContent)) {
-							editor.setContent(textContentFileBuffer);
-						}
+					if (setContentDirty) {
+						editor.setContent(textContent);
 					}
 
 					getSite().setSelectionProvider(selectionProvider);

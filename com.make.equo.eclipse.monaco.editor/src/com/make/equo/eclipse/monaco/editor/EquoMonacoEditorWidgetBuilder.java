@@ -113,7 +113,8 @@ public class EquoMonacoEditorWidgetBuilder extends AbstractEquoMonacoEditorBuild
 				IFileStore fileStore = EFS.getLocalFileSystem().getStore(fileToOpen.toURI());
 				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				try {
-					IEditorPart openEditor = IDE.openEditorOnFileStore(page, fileStore);
+					IEditorPart openEditor = IDE.openEditor(page, fileStore.toURI(),
+							"com.make.equo.eclipse.monaco.editor.EquoEditor", true);
 					if (openEditor instanceof ITextEditor) {
 						ITextEditor textEditor = (ITextEditor) openEditor;
 						IDocument document = textEditor.getDocumentProvider().getDocument(textEditor.getEditorInput());
