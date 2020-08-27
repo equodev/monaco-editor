@@ -13,6 +13,7 @@ import org.eclipse.core.filebuffers.IFileBufferListener;
 import org.eclipse.core.filebuffers.ITextFileBuffer;
 import org.eclipse.core.filebuffers.LocationKind;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -29,6 +30,7 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.window.Window;
+import org.eclipse.lsp4e.LSPEclipseUtils;
 import org.eclipse.lsp4e.LanguageServerWrapper;
 import org.eclipse.lsp4e.LanguageServiceAccessor;
 import org.eclipse.swt.dnd.Clipboard;
@@ -441,6 +443,18 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 					e.printStackTrace();
 				}
 			});
+		});
+		
+		editor.configGetModel(uri -> {
+			IResource resource = LSPEclipseUtils.findResourceFor(uri);
+			if (resource != null && resource instanceof IPath) {
+				IPath file = (IPath) resource;
+				ITextFileBuffer buffer = FileBuffers.getTextFileBufferManager().getTextFileBuffer(file,
+						LocationKind.IFILE);
+				editor.sendModel(uri, buffer.getDocument().get());
+			} else {
+				editor.sendModel(uri, null);
+			}
 		});
 	}
 

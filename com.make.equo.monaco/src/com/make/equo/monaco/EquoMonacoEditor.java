@@ -102,6 +102,24 @@ public class EquoMonacoEditor {
 		equoEventHandler.on(namespace + "_makeRename", runnable);
 	}
 
+	public void sendModel(String uri, String content) {
+		if (content == null) {
+			File file = new File(uri);
+			if (!file.exists() || !file.isFile())
+				return;
+			content = equoFileSystem.readFile(file);
+			if (content == null)
+				return;
+		}
+		equoEventHandler.send(namespace + "_modelResolved" + uri, content);
+	}
+
+	public void configGetModel(IEquoRunnable<String> runnable) {
+		equoEventHandler.on(namespace + "_getContentOf", (JsonObject changes) -> {
+			runnable.run(changes.get("path").getAsString());
+		});
+	}
+
 	public void reInitialize(String content, String filePath, String rootPath, LspProxy lsp) {
 		if (filePath.startsWith("file:")) {
 			setFilePath(filePath.substring(5));
