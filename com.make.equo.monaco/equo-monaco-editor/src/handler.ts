@@ -7,6 +7,10 @@ const normalizeUrl = require('normalize-url');
 const ReconnectingWebSocket = require('reconnecting-websocket');
 import * as monaco from 'monaco-editor';
 import { EquoWebSocketService, EquoWebSocket } from '@equo/websocket'
+// @ts-ignore
+import { StandaloneCodeEditorServiceImpl } from 'monaco-editor/esm/vs/editor/standalone/browser/standaloneCodeServiceImpl.js'
+// @ts-ignore
+import { RenameAction } from 'monaco-editor/esm/vs/editor/contrib/rename/rename.js'
 
 export class EquoMonacoEditor {
 
@@ -81,32 +85,110 @@ export class EquoMonacoEditor {
 		this.notifyChangeCallback = callback;
 	}
 
+	private createModelAndGetLanguage(file: string, content: string): string{
+		let l = this.getLanguageOfFile(file);
+		let language = '';
+
+		if (l) {
+			monaco.languages.register(l);
+			language = l.id;
+		} else {
+			language = 'userdefinedlanguage'
+			monaco.languages.register({
+				id: language
+			});
+		}
+		this.model = monaco.editor.createModel(
+			content,
+			language,
+			monaco.Uri.file(file) // uri
+		);
+		return language;
+	}
+
+	private connectLsp(lspPath: string | undefined, rootUri: string | undefined, language: string): void{
+		if (lspPath) {
+			MonacoServices.install(this.editor, {rootUri: rootUri});
+
+			// create the web socket
+			var url = normalizeUrl(lspPath)
+			this.lspws = createWebSocket(url);
+			var webSocket = this.lspws;
+			// listen when the web socket is opened
+			listen({
+				webSocket,
+				onConnection: connection => {
+					// create and start the language client
+					this.languageClient = createLanguageClient(connection);
+					var disposable = this.languageClient.start();
+					connection.onClose(() => disposable.dispose());
+				}
+			});
+		}
+
+		function createLanguageClient(connection: MessageConnection): MonacoLanguageClient {
+			return new MonacoLanguageClient({
+				name: "Sample Language Client",
+				clientOptions: {
+					// use a language id as a document selector
+					documentSelector: [language],
+					// disable the default error handler
+					errorHandler: {
+						error: () => ErrorAction.Continue,
+						closed: () => CloseAction.DoNotRestart
+					}
+				},
+				// create a language client connection from the JSON RPC connection on demand
+				connectionProvider: {
+					get: (errorHandler, closeHandler) => {
+						return Promise.resolve(createConnection(connection, errorHandler, closeHandler));
+					}
+				}
+			});
+		}
+
+		function createWebSocket(url: string): WebSocket {
+			const socketOptions = {
+				maxReconnectionDelay: 10000,
+				minReconnectionDelay: 1000,
+				reconnectionDelayGrowFactor: 1.3,
+				connectionTimeout: 10000,
+				maxRetries: Infinity,
+				debug: false
+			};
+			return new ReconnectingWebSocket(url, [], socketOptions);
+		}
+	}
+
 	public create(element: HTMLElement, filePath?: string): void {
-		this.webSocket.on("_doCreateEditor", (values: { text: string; name: string; namespace: string; lspPath?: string }) => {
+		this.webSocket.on("_doCreateEditor", (values: { text: string; name: string; namespace: string; lspPath?: string; rootUri?: string }) => {
 			if (!this.wasCreated) {
 				this.namespace = values.namespace;
-				this.fileName = name;
-
-				let l = this.getLanguageOfFile(values.name);
-				let language = '';
-
-				if (l) {
-					monaco.languages.register(l);
-					language = l.id;
-				} else {
-					language = 'userdefinedlanguage'
-					monaco.languages.register({
-						id: language
-					});
-				}
 
 				element.appendChild(this.elemdiv);
 
-				this.model = monaco.editor.createModel(
-					values.text,
-					language,
-					monaco.Uri.file(values.name) // uri
-				);
+				let language = this.createModelAndGetLanguage(values.name, values.text);
+
+				let ws = this.webSocket;
+				let self = this;
+				let getModel = function(resource: monaco.Uri, modelContent: string){
+					var model = null;
+					if(resource !== null)
+						model = monaco.editor.getModel(resource);
+					if (model !== null && self.getEditor().getModel()?.uri.fsPath != resource.fsPath
+						&& model.getValue() != modelContent){
+						model.dispose();
+						model = null;
+					}
+					if(model == null) {
+						model = monaco.editor.createModel(
+							modelContent,
+							language,
+							resource
+						);
+					}
+					return model;
+				}
 
 				this.editor = monaco.editor.create(element, {
 					model: this.model,
@@ -114,7 +196,64 @@ export class EquoMonacoEditor {
 						enabled: true
 					},
 					automaticLayout: true
+				}, { textModelService: {
+						createModelReference: function(uri: monaco.Uri) {
+							return new Promise(function (r, e) {
+								if (self.getEditor().getModel()?.uri.fsPath == uri.fsPath){
+									const textEditorModel = {
+										load() {
+										return Promise.resolve(textEditorModel)
+										},
+										dispose() {},
+										textEditorModel: monaco.editor.getModel(uri)
+									}
+									r({
+										object: textEditorModel,
+										dispose() {}
+									});
+								}else{
+									ws.on(values.namespace + "_modelResolved" + uri.fsPath, (content: string) => {
+										let previewModel = getModel(uri, content);
+										let textEditorModel = {
+											load() {
+											return Promise.resolve(textEditorModel)
+											},
+											dispose() {},
+											textEditorModel: previewModel
+										}
+										r({
+											object: textEditorModel,
+											dispose() {}
+										});
+										let container = self.elemdiv.parentElement;
+										let width = container?.clientWidth;
+										if (width == null){
+											width = 0;
+										}
+										let height = container?.clientHeight;
+										if (height == null){
+											height = 0;
+										}
+										self.editor.layout({height: height + 1, width: width + 1});
+										self.editor.layout({height: height, width: width});
+									});
+									ws.send(values.namespace + "_getContentOf", {path: uri.fsPath});
+								}
+							 });
+						},
+						registerTextModelContentProvider: () => ({ dispose: () => {} })
+					}
 				});
+
+				StandaloneCodeEditorServiceImpl.prototype.doOpenEditor = function (editor: any, input: any) {
+					ws.send("_openCodeEditor", { path: input.resource.path, selection: input.options.selection });
+					return null;
+				};
+				let namespace = values.namespace;
+				RenameAction.prototype.runCommand = function (accessor: any, args: any) {
+					ws.send(namespace + "_makeRename");
+					return null;
+				};
 
 				if (this.shortcutsAdded) {
 					this.activateShortcuts();
@@ -123,58 +262,7 @@ export class EquoMonacoEditor {
 				this.clearDirtyState();
 				this.bindEquoFunctions();
 
-				if (values.lspPath) {
-					MonacoServices.install(this.editor);
-
-					// create the web socket
-					var url = normalizeUrl(values.lspPath)
-					this.lspws = createWebSocket(url);
-					var webSocket = this.lspws;
-					// listen when the web socket is opened
-					listen({
-						webSocket,
-						onConnection: connection => {
-							// create and start the language client
-							this.languageClient = createLanguageClient(connection);
-							var disposable = this.languageClient.start();
-							connection.onClose(() => disposable.dispose());
-						}
-					});
-				}
-
-
-				function createLanguageClient(connection: MessageConnection): MonacoLanguageClient {
-					return new MonacoLanguageClient({
-						name: "Sample Language Client",
-						clientOptions: {
-							// use a language id as a document selector
-							documentSelector: [language],
-							// disable the default error handler
-							errorHandler: {
-								error: () => ErrorAction.Continue,
-								closed: () => CloseAction.DoNotRestart
-							}
-						},
-						// create a language client connection from the JSON RPC connection on demand
-						connectionProvider: {
-							get: (errorHandler, closeHandler) => {
-								return Promise.resolve(createConnection(connection, errorHandler, closeHandler));
-							}
-						}
-					});
-				}
-
-				function createWebSocket(url: string): WebSocket {
-					const socketOptions = {
-						maxReconnectionDelay: 10000,
-						minReconnectionDelay: 1000,
-						reconnectionDelayGrowFactor: 1.3,
-						connectionTimeout: 10000,
-						maxRetries: Infinity,
-						debug: false
-					};
-					return new ReconnectingWebSocket(url, [], socketOptions);
-				}
+				this.connectLsp(values.lspPath, values.rootUri, language);
 
 				this.wasCreated = true;
 				this.editor.onDidChangeModelContent(() => {
@@ -237,7 +325,30 @@ export class EquoMonacoEditor {
 
 	private bindEquoFunctions(): void {
 		this.editor.onDidChangeCursorSelection((e: any) => {
-			this.webSocket.send(this.namespace + "_selection", e.selection);
+			let selection = e.selection;
+			let offsetStart = this.model.getOffsetAt({lineNumber: selection.startLineNumber, column: selection.startColumn});
+			let offsetEnd = this.model.getOffsetAt({lineNumber: selection.endLineNumber, column: selection.endColumn});
+			let length = offsetEnd - offsetStart;
+			this.webSocket.send(this.namespace + "_selection", {offset: offsetStart, length: length});
+		});
+
+		this.webSocket.on(this.namespace + "_doReinitialization", (values: { text: string; name: string; lspPath?: string; rootUri?: string }) => {
+			this.fileName = name;
+
+			this.model.dispose();
+			let language = this.createModelAndGetLanguage(values.name, values.text);
+
+			this.editor.setModel(this.model);
+			this.setTextLabel("");
+
+			if (this.lspws) {
+				//@ts-ignore
+				this.lspws.close(1000, '', { keepClosed: true, fastClose: true, delay: 0 });
+			}
+			if (this.languageClient)
+				this.languageClient.stop();
+
+			this.connectLsp(values.lspPath, values.rootUri, language);
 		});
 
 		this.webSocket.on(this.namespace + "_filePathChanged", (values: { path: string; name: string }) => {
@@ -307,6 +418,15 @@ export class EquoMonacoEditor {
 			this.notifyChanges();
 		});
 
+		this.webSocket.on(this.namespace + "_setContent", (content: string) => {
+			this.editor.setValue(content);
+			if (!this.isDirty()){
+				this.lastSavedVersionId = this.lastSavedVersionId - 1;
+			}
+			this.setTextLabel("");
+			this.notifyChanges();
+		});
+
 		this.webSocket.on(this.namespace + "_selectAndReveal", (values: { offset: number; length: number }) => {
 			let position = this.model.getPositionAt(values.offset);
 			let positionEnd = this.model.getPositionAt(values.offset + values.length);
@@ -322,7 +442,8 @@ export class EquoMonacoEditor {
 	private notifyChanges(): void {
 		if (this.sendChangesToJavaSide) {
 			this.webSocket.send(this.namespace + "_changesNotification",
-				{ isDirty: this.lastSavedVersionId !== this.model.getAlternativeVersionId(), canRedo: (this.model as any).canRedo(), canUndo: (this.model as any).canUndo() });
+				{ isDirty: this.lastSavedVersionId !== this.model.getAlternativeVersionId(), canRedo: (this.model as any).canRedo(),
+					canUndo: (this.model as any).canUndo(), content: this.editor.getValue() });
 		}
 		this.notifyChangeCallback();
 	}

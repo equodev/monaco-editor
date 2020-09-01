@@ -13,7 +13,7 @@ public class MonacoEditorSelectionProvider implements ISelectionProvider {
 	
 	private List<ISelectionChangedListener> listeners = new ArrayList<>();
 	
-	private ISelection selection = new TextSelection(0,0);
+	private TextSelection selection = new TextSelection(0,-1);
 
 	@Override
 	public void addSelectionChangedListener(ISelectionChangedListener arg0) {
@@ -32,9 +32,19 @@ public class MonacoEditorSelectionProvider implements ISelectionProvider {
 
 	@Override
 	public void setSelection(ISelection arg0) {
-		selection = arg0;
-		for (ISelectionChangedListener l: listeners) {
-			l.selectionChanged(new SelectionChangedEvent(this, selection));
+		if (arg0 instanceof TextSelection) {
+			setSelectionVariable((TextSelection) arg0);
+			for (ISelectionChangedListener l : listeners) {
+				l.selectionChanged(new SelectionChangedEvent(this, selection));
+			}
+		}
+	}
+
+	private void setSelectionVariable(TextSelection selection) {
+		if (selection.getLength() <= 0) {
+			this.selection = new TextSelection(0, -1);
+		} else {
+			this.selection = selection;
 		}
 	}
 

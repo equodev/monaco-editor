@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -19,6 +22,8 @@ public class LspWsProxy extends WebSocketServer {
 	private static final int READING_MESSAGE_STATE = 3;
 	private OutputStream streamOut;
 	private Thread redirectThread = null;
+	private ExecutorService executorService = Executors.newCachedThreadPool();
+	private final AtomicBoolean finish = new AtomicBoolean(false);
 
 	public LspWsProxy(int port, InputStream streamIn, OutputStream streamOut) {
 		super(new InetSocketAddress(port));
@@ -33,53 +38,56 @@ public class LspWsProxy extends WebSocketServer {
 				while (true) {
 					// Block of read message
 					int readed = streamIn.read();
+					if (finish.get()) {
+						return;
+					}
 					switch (state) {
-					case READING_HEADER_STATE:
-						builderHeader.append((char) readed);
-						final int lastIndexOf = builderHeader.lastIndexOf(CONTENT_LENGTH);
-						if (lastIndexOf >= 0 && lastIndexOf == builderHeader.length() - SIZE_STRING_CONTENT_LENGTH) {
-							state++;
-						}
-						break;
-					case READING_CONTENT_LENGTH_STATE:
-						if ((char) readed == '\r') {
-							state++;
-						} else {
-							lengthMessage = (lengthMessage * 10) + readed - ASCII_0;
-						}
-						break;
-					case SEARCHING_START_MESSAGE_STATE:
-						if ((char) readed == '{') {
-							builderMessage = new StringBuilder(lengthMessage);
+						case READING_HEADER_STATE:
+							builderHeader.append((char) readed);
+							final int lastIndexOf = builderHeader.lastIndexOf(CONTENT_LENGTH);
+							if (lastIndexOf >= 0
+									&& lastIndexOf == builderHeader.length() - SIZE_STRING_CONTENT_LENGTH) {
+								state++;
+							}
+							break;
+						case READING_CONTENT_LENGTH_STATE:
+							if ((char) readed == '\r') {
+								state++;
+							} else {
+								lengthMessage = (lengthMessage * 10) + readed - ASCII_0;
+							}
+							break;
+						case SEARCHING_START_MESSAGE_STATE:
+							if ((char) readed == '{') {
+								builderMessage = new StringBuilder(lengthMessage);
+								builderMessage.append((char) readed);
+								state++;
+								lengthReaded++;
+							}
+							break;
+						case READING_MESSAGE_STATE:
 							builderMessage.append((char) readed);
-							state++;
-							lengthReaded++;
-						}
-						break;
-					case READING_MESSAGE_STATE:
-						builderMessage.append((char) readed);
-						if (++lengthReaded == lengthMessage) {
-							broadcast(builderMessage.toString());
-							lengthReaded = 0;
-							lengthMessage = 0;
-							builderHeader = new StringBuilder();
-							state = READING_HEADER_STATE;
-						}
+							if (++lengthReaded == lengthMessage) {
+								broadcast(builderMessage.toString());
+								lengthReaded = 0;
+								lengthMessage = 0;
+								builderHeader = new StringBuilder();
+								state = READING_HEADER_STATE;
+							}
 					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		});
+		}, "Lsp -> Equo Editor");
 		redirectThread.start();
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void stop() throws IOException, InterruptedException {
-		if (redirectThread != null)
-			redirectThread.stop();
+		finish.set(true);
 		super.stop();
+		executorService.shutdown();
 	}
 
 	@Override
@@ -96,18 +104,18 @@ public class LspWsProxy extends WebSocketServer {
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
-		new Thread(() -> {
+		executorService.submit(() -> {
+			String fullMessage = CONTENT_LENGTH + message.getBytes().length + "\r\n\r\n" + message;
+			final byte[] bytes = fullMessage.getBytes();
 			try {
 				synchronized (streamOut) {
-					String fullMessage = CONTENT_LENGTH + message.getBytes().length + "\r\n\r\n" + message;
-					byte[] bytes = fullMessage.getBytes();
 					streamOut.write(bytes);
 					streamOut.flush();
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}).start();
+		});
 	}
 
 	@Override

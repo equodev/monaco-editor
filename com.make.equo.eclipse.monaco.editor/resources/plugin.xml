@@ -8,7 +8,7 @@
 		<editor
 			class="com.make.equo.eclipse.monaco.editor.MonacoEditorPart"
 			default="true"
-			id="com.make.equo.eclipse.monaco.editor.MonacoEditorPart"
+			id="com.make.equo.eclipse.monaco.editor.EquoEditor"
 			icon="img/equo.png"
 			name="Equo Editor">
 		    <contentTypeBinding
@@ -16,5 +16,19 @@
             </contentTypeBinding>
 		</editor>
 	</extension>
-
+	<extension
+         point="org.eclipse.ui.commands">
+      <command
+            description="Rename"
+            id="com.make.equo.eclipse.monaco.editor.rename"
+            name="Rename">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="com.make.equo.eclipse.monaco.editor.handlers.LSPRenameHandler"
+            commandId="com.make.equo.eclipse.monaco.editor.rename">
+      </handler>
+   </extension>
 </plugin>

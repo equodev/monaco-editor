@@ -25,7 +25,7 @@ public abstract class LspProxy {
 			}
 		}
 	}
-	
+
 	protected void startProxy(InputStream streamIn, OutputStream streamOut) {
 		closeSocketPortReserve();
 		proxy = new LspWsProxy(getPort(), streamIn, streamOut);

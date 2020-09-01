@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.swt.chromium.Browser;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -52,18 +53,26 @@ public class EquoMonacoEditor {
 	private boolean dispose = false;
 	private String fileName = "";
 	private WatchService watchService;
+	private String rootPath = null;
+
+	protected IEquoEventHandler equoEventHandler;
+
+	private String initialContent;
 
 	public String getFilePath() {
 		return filePath;
+	}
+
+	public void setRootPath(String rootPath) {
+		this.rootPath = rootPath;
 	}
 
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
 		this.fileName = new File(this.filePath).getName();
 		listenChangesPath();
+		notifyFilePathChanged();
 	}
-
-	protected IEquoEventHandler equoEventHandler;
 
 	public EquoMonacoEditor(Composite parent, int style, IEquoEventHandler handler,
 			IEquoWebSocketService websocketService, IEquoFileSystem equoFileSystem) {
@@ -89,25 +98,74 @@ public class EquoMonacoEditor {
 		equoEventHandler.on(namespace + "_doReload", (IEquoRunnable<Void>) runnable -> reload());
 	}
 
+	public void configRename(IEquoRunnable<Void> runnable) {
+		equoEventHandler.on(namespace + "_makeRename", runnable);
+	}
+
+	public void sendModel(String uri, String content) {
+		if (content == null) {
+			File file = new File(uri);
+			if (!file.exists() || !file.isFile())
+				return;
+			content = equoFileSystem.readFile(file);
+			if (content == null)
+				return;
+		}
+		equoEventHandler.send(namespace + "_modelResolved" + uri, content);
+	}
+
+	public void configGetModel(IEquoRunnable<String> runnable) {
+		equoEventHandler.on(namespace + "_getContentOf", (JsonObject changes) -> {
+			runnable.run(changes.get("path").getAsString());
+		});
+	}
+
+	public void reInitialize(String content, String filePath, String rootPath, LspProxy lsp) {
+		if (filePath.startsWith("file:")) {
+			setFilePath(filePath.substring(5));
+		} else {
+			setFilePath(filePath);
+		}
+		String lspPath = null;
+		if (lsp != null) {
+			this.lspProxy = lsp;
+			lspPath = "ws://127.0.0.1:" + lsp.getPort();
+			this.lspProxy.startServer();
+		}
+		setRootPath(rootPath);
+
+		Map<String, String> editorData = new HashMap<String, String>();
+		editorData.put("text", content);
+		editorData.put("name", this.filePath);
+		editorData.put("lspPath", lspPath);
+		if (this.rootPath != null) {
+			editorData.put("rootUri", "file://" + this.rootPath);
+		}
+		equoEventHandler.send(this.namespace + "_doReinitialization", editorData);
+	}
+
 	public void initialize(String contents, String fileName, String filePath) {
 		this.filePath = filePath;
 		this.fileName = fileName;
 		handleCreateEditor(contents, null);
 	}
 
-	protected void createEditor(String contents, String filePath, LspProxy lsp) {
+	protected void createEditor(String content, String filePath, LspProxy lsp) {
+		this.initialContent = content;
 		if (filePath.startsWith("file:")) {
 			setFilePath(filePath.substring(5));
-		}else {
+		} else {
 			setFilePath(filePath);
 		}
 		String lspPathAux = null;
+		if (this.lspProxy != null)
+			this.lspProxy.stopServer();
 		if (lsp != null) {
 			this.lspProxy = lsp;
 			lspPathAux = "ws://127.0.0.1:" + lsp.getPort();
 		}
 		final String lspPath = lspPathAux;
-		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(contents, lspPath));
+		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(content, lspPath));
 	}
 
 	protected String getLspServerForFile(String fileName) {
@@ -137,11 +195,15 @@ public class EquoMonacoEditor {
 		editorData.put("name", this.filePath);
 		editorData.put("namespace", namespace);
 		editorData.put("lspPath", lspPath);
+		if (this.rootPath != null) {
+			editorData.put("rootUri", "file://" + this.rootPath);
+		}
 		equoEventHandler.send("_doCreateEditor", editorData);
 		loaded = true;
 		for (IEquoRunnable<Void> onLoadListener : onLoadListeners) {
 			onLoadListener.run(null);
 		}
+		onLoadListeners.clear();
 
 		equoEventHandler.on(namespace + "_canPaste", (IEquoRunnable<Void>) runnable -> {
 			try {
@@ -183,6 +245,9 @@ public class EquoMonacoEditor {
 	}
 
 	public String getContentsSync() {
+		if (!loaded) {
+			return this.initialContent;
+		}
 		String[] result = { null };
 		if (lock.tryAcquire()) {
 			equoEventHandler.on(namespace + "_doGetContents", (JsonObject contents) -> {
@@ -288,16 +353,22 @@ public class EquoMonacoEditor {
 		}
 	}
 
-	public void registerFileToListen() {
+	public boolean registerFileToListen() {
 		fileName = Paths.get(filePath).getFileName().toString();
-		Path path = Paths.get(Paths.get(filePath).getParent().toString());
+		Path parent = Paths.get(filePath).getParent();
+		if (parent == null) {
+			return false;
+		}
+		Path path = Paths.get(parent.toString());
 		try {
 			watchService = FileSystems.getDefault().newWatchService();
 			path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY,
 					StandardWatchEventKinds.ENTRY_DELETE);
 		} catch (IOException e) {
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 
 	public void listenChangesPath() {
@@ -313,7 +384,9 @@ public class EquoMonacoEditor {
 			}
 		}
 
-		registerFileToListen();
+		if (!registerFileToListen()) {
+			return;
+		}
 
 		new Thread() {
 			public void run() {
@@ -377,19 +450,21 @@ public class EquoMonacoEditor {
 		}
 	}
 
-	public void configSelection(IEquoRunnable<Boolean> selectionFunction) {
+	public void configSelection(IEquoRunnable<TextSelection> selectionFunction) {
 		equoEventHandler.on(namespace + "_selection", (JsonObject contents) -> {
-			selectionFunction.run(contents.get("endColumn").getAsInt() != contents.get("startColumn").getAsInt()
-					|| contents.get("endLineNumber").getAsInt() != contents.get("startLineNumber").getAsInt());
+			TextSelection textSelection = new TextSelection(contents.get("offset").getAsInt(),
+					contents.get("length").getAsInt());
+			selectionFunction.run(textSelection);
 		});
 	}
 
 	public void subscribeChanges(IEquoRunnable<Boolean> dirtyListener, IEquoRunnable<Boolean> undoListener,
-			IEquoRunnable<Boolean> redoListener) {
+			IEquoRunnable<Boolean> redoListener, IEquoRunnable<String> contentChangeListener) {
 		equoEventHandler.on(namespace + "_changesNotification", (JsonObject changes) -> {
 			dirtyListener.run(changes.get("isDirty").getAsBoolean());
 			undoListener.run(changes.get("canUndo").getAsBoolean());
 			redoListener.run(changes.get("canRedo").getAsBoolean());
+			contentChangeListener.run(changes.get("content").getAsString());
 		});
 
 		if (loaded) {
@@ -449,8 +524,19 @@ public class EquoMonacoEditor {
 	}
 
 	public void dispose() {
-		lspProxy.stopServer();
+		if (lspProxy != null)
+			lspProxy.stopServer();
 		dispose = true;
+	}
+
+	public void setContent(String content) {
+		if (loaded) {
+			equoEventHandler.send(namespace + "_setContent", content);
+		} else {
+			addOnLoadListener((IEquoRunnable<Void>) runnable -> {
+				equoEventHandler.send(namespace + "_setContent", content);
+			});
+		}
 	}
 
 }

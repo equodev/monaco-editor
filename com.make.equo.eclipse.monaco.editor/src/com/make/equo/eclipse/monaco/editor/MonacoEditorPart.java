@@ -7,7 +7,16 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collection;
 
+import org.eclipse.core.filebuffers.FileBuffers;
+import org.eclipse.core.filebuffers.IFileBuffer;
+import org.eclipse.core.filebuffers.IFileBufferListener;
+import org.eclipse.core.filebuffers.ITextFileBuffer;
+import org.eclipse.core.filebuffers.LocationKind;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -15,11 +24,13 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.TextSelection;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.window.Window;
+import org.eclipse.lsp4e.LSPEclipseUtils;
 import org.eclipse.lsp4e.LanguageServerWrapper;
 import org.eclipse.lsp4e.LanguageServiceAccessor;
 import org.eclipse.swt.dnd.Clipboard;
@@ -35,6 +46,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.dialogs.SaveAsDialog;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
@@ -46,7 +58,6 @@ import org.osgi.service.component.annotations.Reference;
 
 import com.make.equo.eclipse.monaco.lsp.EclipseLspProxy;
 import com.make.equo.monaco.EquoMonacoEditor;
-import com.make.equo.monaco.EquoMonacoEditorWidgetBuilder;
 import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
@@ -57,11 +68,6 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	private EquoMonacoEditorWidgetBuilder monacoBuilder;
 
 	private volatile boolean isDirty = false;
-
-	private IEquoRunnable<Boolean> dirtyListener = (isDirty) -> {
-		this.isDirty = isDirty;
-		firePropertyChange(PROP_DIRTY);
-	};
 
 	private EquoMonacoEditor editor;
 	private IDocumentProvider documentProvider;
@@ -76,6 +82,13 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	private EditorAction pasteAction;
 	private EditorAction findAction;
 
+	private IFileBufferListener ownFileBufferListener = null;
+	private IDocumentListener ownDocumentListener = null;
+	private IDocument ownDocument = null;
+
+	private ITextFileBuffer fileBuffer;
+	private boolean reload = true;
+
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 		String editorContents = editor.getContentsSync();
@@ -88,7 +101,6 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 							monitor);
 					editor.handleAfterSave();
 				} catch (CoreException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			});
@@ -129,7 +141,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		}
 
 		setInput(newInput);
-		setPartName(file.getName());
+		initializeNewInput(newInput);
 		editor.setFilePath(((FileEditorInput) newInput).getPath().toString());
 		doSave(new NullProgressMonitor());
 	}
@@ -138,7 +150,6 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		setInput(input);
 		setSite(site);
-
 	}
 
 	@Override
@@ -151,24 +162,96 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		return true;
 	}
 
+	private String getRootPath(IFile file) {
+		return file.getProject().getLocation().toString();
+	}
+
+	private void initializeNewInput(IEditorInput input) {
+		Display.getDefault().syncExec(() -> {
+			setPartName(input.getName());
+			if (input instanceof FileEditorInput) {
+				final FileEditorInput fileInput = (FileEditorInput) input;
+				setTitleToolTip(fileInput.getPath().toString());
+				IFile file = fileInput.getFile();
+				registerFileBufferListener(file);
+				ownDocument = null;
+				fileBuffer = FileBuffers.getTextFileBufferManager().getTextFileBuffer(file.getFullPath(),
+						LocationKind.IFILE);
+				if (fileBuffer != null) {
+					registerDocumentListener(fileBuffer.getDocument());
+				}
+				ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
+					@Override
+					public void resourceChanged(final IResourceChangeEvent event) {
+						IResourceDelta delta = event.getDelta();
+
+						delta = delta.findMember(fileInput.getFile().getFullPath());
+						if (delta == null)
+							return;
+
+						if (delta.getKind() == IResourceDelta.REMOVED) {
+							if ((delta.getFlags() & IResourceDelta.MOVED_TO) != 0) {
+								IWorkspace workspace = ResourcesPlugin.getWorkspace();
+								workspace.removeResourceChangeListener(this);
+								IPath newPath = delta.getMovedToPath();
+								IFile file = workspace.getRoot().getFile(newPath);
+								FileEditorInput newInput = new FileEditorInput(file);
+								setInput(newInput);
+								initializeNewInput(newInput);
+								LspProxy lspProxy = getLspProxy(file);
+								try (InputStream contents = file.getContents()) {
+									int singleByte;
+									ByteArrayOutputStream baos = new ByteArrayOutputStream();
+									while ((singleByte = contents.read()) != -1) {
+										baos.write(singleByte);
+									}
+									String textContent = new String(baos.toByteArray());
+									if (fileBuffer != null) {
+										String textContentFileBuffer = ownDocument.get();
+										if (!textContentFileBuffer.equals(textContent)) {
+											textContent = textContentFileBuffer;
+										}
+									}
+									editor.reInitialize(textContent, newInput.getPath().toString(), getRootPath(file),
+											lspProxy);
+								} catch (IOException | CoreException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+					}
+
+				});
+			}
+		});
+	}
+
 	@Override
 	public void createPartControl(Composite parent) {
+		System.setProperty("swt.chromium.debug", "true");
 		IEditorInput input = getEditorInput();
-		setPartName(input.getName());
 		if (input instanceof FileEditorInput) {
 			FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
-			LspProxy lspProxy = getLspProxy(fileInput.getFile());
+			IFile file = fileInput.getFile();
+			initializeNewInput(input);
+			LspProxy lspProxy = getLspProxy(file);
 
-			try (InputStream contents = fileInput.getFile().getContents()) {
+			try (InputStream contents = file.getContents()) {
 				int singleByte;
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				while ((singleByte = contents.read()) != -1) {
 					baos.write(singleByte);
-					;
 				}
-
 				String textContent = new String(baos.toByteArray());
+				boolean setContentDirty = false;
+				if (fileBuffer != null) {
+					String textContentFileBuffer = ownDocument.get();
+					if (!textContentFileBuffer.equals(textContent)) {
+						textContent = textContentFileBuffer;
+						setContentDirty = true;
+					}
+				}
 
 				try {
 					BundleContext bndContext = FrameworkUtil.getBundle(EquoMonacoEditorWidgetBuilder.class)
@@ -180,10 +263,13 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 					EquoMonacoEditorWidgetBuilder builder = bndContext.getService(svcReference);
 					editor = builder.withParent(parent).withStyle(parent.getStyle()).withContents(textContent)
-							.withFilePath(fileInput.getURI().toString()).withLSP(lspProxy).create();
+							.withFilePath(fileInput.getURI().toString()).withLSP(lspProxy)
+							.withRootPath(getRootPath(file)).create();
 					documentProvider = new MonacoEditorDocumentProvider(editor);
-
 					editorConfigs();
+					if (setContentDirty) {
+						editor.setContent(textContent);
+					}
 
 					getSite().setSelectionProvider(selectionProvider);
 
@@ -194,12 +280,108 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 					System.out.println("Couldn't retrieve Monaco Editor service");
 				}
 			} catch (CoreException | IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
 		}
 
+	}
+
+	private void registerDocumentListener(IDocument document) {
+		if (ownDocumentListener != null) {
+			ownDocument.removeDocumentListener(ownDocumentListener);
+		}
+		ownDocumentListener = new IDocumentListener() {
+			@Override
+			public void documentAboutToBeChanged(DocumentEvent event) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void documentChanged(DocumentEvent event) {
+				if (reload)
+					editor.setContent(fileBuffer.getDocument().get());
+			}
+		};
+		document.addDocumentListener(ownDocumentListener);
+		ownDocument = document;
+	}
+
+	private void registerFileBufferListener(IFile file) {
+		if (ownFileBufferListener != null) {
+			FileBuffers.getTextFileBufferManager().removeFileBufferListener(ownFileBufferListener);
+		}
+		ownFileBufferListener = new IFileBufferListener() {
+
+			@Override
+			public void bufferCreated(IFileBuffer buffer) {
+				if (file.getLocation().toPortableString().endsWith(buffer.getLocation().toPortableString())) {
+					if (buffer instanceof ITextFileBuffer) {
+						fileBuffer = (ITextFileBuffer) buffer;
+						registerDocumentListener(fileBuffer.getDocument());
+					}
+				}
+			}
+
+			@Override
+			public void bufferDisposed(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void bufferContentAboutToBeReplaced(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void bufferContentReplaced(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void stateChanging(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void dirtyStateChanged(IFileBuffer buffer, boolean isDirty) {
+				if (file.getLocation().toPortableString().endsWith(buffer.getLocation().toPortableString())) {
+					if (reload)
+						editor.setContent(ownDocument.get());
+				}
+			}
+
+			@Override
+			public void stateValidationChanged(IFileBuffer buffer, boolean isStateValidated) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void underlyingFileMoved(IFileBuffer buffer, IPath path) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void underlyingFileDeleted(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void stateChangeFailed(IFileBuffer buffer) {
+				// TODO Auto-generated method stub
+
+			}
+
+		};
+		FileBuffers.getTextFileBufferManager().addFileBufferListener(ownFileBufferListener);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -216,6 +398,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			Collection<LanguageServerWrapper> wrappers = LanguageServiceAccessor.getLSWrappers(file, null);
 			if (!wrappers.isEmpty()) {
 				LanguageServerWrapper lspServer = wrappers.iterator().next();
+				lspServer.getInitializedServer();
 				return new EclipseLspProxy(lspServer);
 			}
 		} catch (IOException e) {
@@ -225,19 +408,52 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	}
 
 	private void editorConfigs() {
+		IEquoRunnable<Boolean> dirtyListener = (isDirty) -> {
+			this.isDirty = isDirty;
+			firePropertyChange(PROP_DIRTY);
+		};
+
 		IEquoRunnable<Boolean> redoListener = (canRedo) -> {
 			redoAction.setEnabled(canRedo);
 		};
 		IEquoRunnable<Boolean> undoListener = (canUndo) -> {
 			undoAction.setEnabled(canUndo);
 		};
-		editor.subscribeChanges(dirtyListener, undoListener, redoListener);
+		IEquoRunnable<String> contentChangeListener = (content) -> {
+			if (ownDocument != null) {
+				reload = false;
+				ownDocument.set(content);
+				reload = true;
+			}
+		};
+		editor.subscribeChanges(dirtyListener, undoListener, redoListener, contentChangeListener);
 
 		editor.configSelection((selection) -> {
 			Display.getDefault().asyncExec(() -> {
-				ISelection iSelection = (selection) ? new TextSelection(0, 1) : new TextSelection(0, -1);
-				selectionProvider.setSelection(iSelection);
+				selectionProvider.setSelection(selection);
 			});
+		});
+		editor.configRename((empty) -> {
+			Display.getDefault().asyncExec(() -> {
+				try {
+					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
+					handlerService.executeCommand("com.make.equo.eclipse.monaco.editor.rename", null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+		});
+		
+		editor.configGetModel(uri -> {
+			IResource resource = LSPEclipseUtils.findResourceFor(uri);
+			if (resource != null && resource instanceof IPath) {
+				IPath file = (IPath) resource;
+				ITextFileBuffer buffer = FileBuffers.getTextFileBufferManager().getTextFileBuffer(file,
+						LocationKind.IFILE);
+				editor.sendModel(uri, buffer.getDocument().get());
+			} else {
+				editor.sendModel(uri, null);
+			}
 		});
 	}
 
@@ -274,14 +490,22 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	@Override
 	public void setFocus() {
 		getSite().setSelectionProvider(selectionProvider);
-		activateActions();
+		try {
+			activateActions();
+		} catch (Exception e) {
+		}
 	}
 
 	@Override
 	public void dispose() {
 		super.dispose();
+		if (ownFileBufferListener != null) {
+			FileBuffers.getTextFileBufferManager().removeFileBufferListener(ownFileBufferListener);
+		}
 		editor.dispose();
 	}
+
+	// ITextEditor methods:
 
 	@Override
 	public IDocumentProvider getDocumentProvider() {
