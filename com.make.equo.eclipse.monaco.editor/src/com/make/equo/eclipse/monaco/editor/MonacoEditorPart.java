@@ -150,6 +150,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		setInput(input);
 		setSite(site);
+
 	}
 
 	@Override

@@ -23,12 +23,21 @@
             id="com.make.equo.eclipse.monaco.editor.rename"
             name="Rename">
       </command>
+      <command
+            description="Find references"
+            id="com.make.equo.eclipse.monaco.editor.LSFindReferences"
+            name="Find References">
+      </command>
    </extension>
-   <extension
+	<extension
          point="org.eclipse.ui.handlers">
       <handler
             class="com.make.equo.eclipse.monaco.editor.handlers.LSPRenameHandler"
             commandId="com.make.equo.eclipse.monaco.editor.rename">
+      </handler>
+      <handler
+            class="com.make.equo.eclipse.monaco.editor.handlers.LSFindReferences"
+            commandId="com.make.equo.eclipse.monaco.editor.LSFindReferences">
       </handler>
    </extension>
 </plugin>
