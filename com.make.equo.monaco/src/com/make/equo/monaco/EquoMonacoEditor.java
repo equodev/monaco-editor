@@ -147,7 +147,7 @@ public class EquoMonacoEditor {
 	public void initialize(String contents, String fileName, String filePath) {
 		this.filePath = filePath;
 		this.fileName = fileName;
-		handleCreateEditor(contents, null);
+		handleCreateEditor(contents, null, false);
 	}
 
 	protected void createEditor(String content, String filePath, LspProxy lsp) {
@@ -160,12 +160,13 @@ public class EquoMonacoEditor {
 		String lspPathAux = null;
 		if (this.lspProxy != null)
 			this.lspProxy.stopServer();
-		if (lsp != null) {
+		final boolean thereIsLS = (lsp != null);
+		if (thereIsLS) {
 			this.lspProxy = lsp;
 			lspPathAux = "ws://127.0.0.1:" + lsp.getPort();
 		}
 		final String lspPath = lspPathAux;
-		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(content, lspPath));
+		equoEventHandler.on("_createEditor", (JsonObject payload) -> handleCreateEditor(content, lspPath, thereIsLS));
 	}
 
 	protected String getLspServerForFile(String fileName) {
@@ -182,7 +183,7 @@ public class EquoMonacoEditor {
 		return lspWsServers.getOrDefault(extension, null);
 	}
 
-	protected void handleCreateEditor(String contents, String fixedLspPath) {
+	protected void handleCreateEditor(String contents, String fixedLspPath, boolean bindEclipseLsp) {
 		String lspPath = (fixedLspPath != null) ? fixedLspPath : getLspServerForFile(this.fileName);
 		if (lspPath != null && this.lspProxy != null) {
 			try {
@@ -190,11 +191,12 @@ public class EquoMonacoEditor {
 			} catch (Exception e) {
 			}
 		}
-		Map<String, String> editorData = new HashMap<String, String>();
+		Map<String, Object> editorData = new HashMap<>();
 		editorData.put("text", contents);
 		editorData.put("name", this.filePath);
 		editorData.put("namespace", namespace);
 		editorData.put("lspPath", lspPath);
+		editorData.put("bindEclipseLsp", bindEclipseLsp);
 		if (this.rootPath != null) {
 			editorData.put("rootUri", "file://" + this.rootPath);
 		}

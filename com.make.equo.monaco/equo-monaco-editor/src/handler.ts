@@ -231,22 +231,24 @@ export class EquoMonacoEditor {
 		}
 	}
 
-	private editorTweaks(): void{
+	private editorTweaks(bindEclipseLsp: boolean): void{
 		let ws = this.webSocket;
 		let namespace = this.namespace;
-		this.editor.addAction({
-			id: 'findAllReferences',
-			label: 'Find All References',
-			keybindings: [
-				monaco.KeyMod.Alt | monaco.KeyMod.Shift | monaco.KeyCode.F12
-			],
-			precondition: "editorHasSelection",
-			contextMenuGroupId: 'navigation',
-			contextMenuOrder: 6.0,
-			run: function(editor: monaco.editor.IStandaloneCodeEditor): void {
-				ws.send(namespace + "_findAllReferences");
-			}
-		});
+		if (bindEclipseLsp) {
+			this.editor.addAction({
+				id: 'findAllReferences',
+				label: 'Find All References',
+				keybindings: [
+					monaco.KeyMod.Alt | monaco.KeyMod.Shift | monaco.KeyCode.F12
+				],
+				precondition: "editorHasSelection",
+				contextMenuGroupId: 'navigation',
+				contextMenuOrder: 6.0,
+				run: function (editor: monaco.editor.IStandaloneCodeEditor): void {
+					ws.send(namespace + "_findAllReferences");
+				}
+			});
+		}
 
 		StandaloneCodeEditorServiceImpl.prototype.doOpenEditor = function (editor: any, input: any) {
 			ws.send("_openCodeEditor", { path: input.resource.path, selection: input.options.selection });
@@ -259,7 +261,7 @@ export class EquoMonacoEditor {
 	}
 
 	public create(element: HTMLElement, filePath?: string): void {
-		this.webSocket.on("_doCreateEditor", (values: { text: string; name: string; namespace: string; lspPath?: string; rootUri?: string }) => {
+		this.webSocket.on("_doCreateEditor", (values: { text: string; name: string; namespace: string; bindEclipseLsp: boolean; lspPath?: string; rootUri?: string }) => {
 			if (!this.wasCreated) {
 				this.namespace = values.namespace;
 
@@ -275,7 +277,7 @@ export class EquoMonacoEditor {
 					automaticLayout: true
 				}, { textModelService: this.generateTextModelService(language)});
 
-				this.editorTweaks();
+				this.editorTweaks(values.bindEclipseLsp);
 
 				if (this.shortcutsAdded) {
 					this.activateShortcuts();
