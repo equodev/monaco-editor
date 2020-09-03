@@ -245,11 +245,25 @@ export class EquoMonacoEditor {
 					}
 				});
 
+				let namespace = values.namespace;
+				this.editor.addAction({
+					id: 'findAllReferences',
+					label: 'Find All References',
+					keybindings: [
+						monaco.KeyMod.Alt | monaco.KeyMod.Shift | monaco.KeyCode.F12
+					],
+					precondition: "editorHasSelection",
+					contextMenuGroupId: 'navigation',
+					contextMenuOrder: 6.0,
+					run: function(editor: monaco.editor.IStandaloneCodeEditor): void {
+						ws.send(namespace + "_findAllReferences");
+					}
+				});
+
 				StandaloneCodeEditorServiceImpl.prototype.doOpenEditor = function (editor: any, input: any) {
 					ws.send("_openCodeEditor", { path: input.resource.path, selection: input.options.selection });
 					return null;
 				};
-				let namespace = values.namespace;
 				RenameAction.prototype.runCommand = function (accessor: any, args: any) {
 					ws.send(namespace + "_makeRename");
 					return null;
