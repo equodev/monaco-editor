@@ -456,6 +456,17 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 				editor.sendModel(uri, null);
 			}
 		});
+
+		editor.configFindAllReferences(v -> {
+			Display.getDefault().asyncExec(() -> {
+				try {
+					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
+					handlerService.executeCommand("com.make.equo.eclipse.monaco.editor.LSFindReferences", null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+		});
 	}
 
 	private void createActions() {

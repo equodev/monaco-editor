@@ -458,6 +458,10 @@ public class EquoMonacoEditor {
 		});
 	}
 
+	public void configFindAllReferences(IEquoRunnable<Void> handler) {
+		equoEventHandler.on(namespace + "_findAllReferences", handler);
+	}
+
 	public void subscribeChanges(IEquoRunnable<Boolean> dirtyListener, IEquoRunnable<Boolean> undoListener,
 			IEquoRunnable<Boolean> redoListener, IEquoRunnable<String> contentChangeListener) {
 		equoEventHandler.on(namespace + "_changesNotification", (JsonObject changes) -> {
