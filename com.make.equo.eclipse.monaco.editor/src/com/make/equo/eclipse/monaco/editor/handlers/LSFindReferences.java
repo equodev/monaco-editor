@@ -39,6 +39,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  *
  */
 public class LSFindReferences extends AbstractHandler implements IHandler {
+	public static final String COMMAND_ID = "com.make.equo.eclipse.monaco.editor.LSFindReferences";
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
