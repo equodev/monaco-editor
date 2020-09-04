@@ -46,6 +46,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class LSPRenameHandler extends AbstractHandler implements IHandler {
+	public static final String COMMAND_ID = "com.make.equo.eclipse.monaco.editor.rename";
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {

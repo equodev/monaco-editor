@@ -56,6 +56,8 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Reference;
 
+import com.make.equo.eclipse.monaco.editor.handlers.LSFindReferences;
+import com.make.equo.eclipse.monaco.editor.handlers.LSPRenameHandler;
 import com.make.equo.eclipse.monaco.lsp.EclipseLspProxy;
 import com.make.equo.monaco.EquoMonacoEditor;
 import com.make.equo.monaco.lsp.LspProxy;
@@ -150,6 +152,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		setInput(input);
 		setSite(site);
+
 	}
 
 	@Override
@@ -437,7 +440,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			Display.getDefault().asyncExec(() -> {
 				try {
 					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
-					handlerService.executeCommand("com.make.equo.eclipse.monaco.editor.rename", null);
+					handlerService.executeCommand(LSPRenameHandler.COMMAND_ID, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -454,6 +457,17 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			} else {
 				editor.sendModel(uri, null);
 			}
+		});
+
+		editor.configFindAllReferences(v -> {
+			Display.getDefault().asyncExec(() -> {
+				try {
+					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
+					handlerService.executeCommand(LSFindReferences.COMMAND_ID, null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
 		});
 	}
 

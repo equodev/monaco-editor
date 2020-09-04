@@ -160,8 +160,108 @@ export class EquoMonacoEditor {
 		}
 	}
 
+	private generateTextModelService(language: string): any{
+		let self = this;
+		let ws = this.webSocket;
+		let getModel = function(resource: monaco.Uri, modelContent: string){
+			var model = null;
+			if(resource !== null)
+				model = monaco.editor.getModel(resource);
+			if (model !== null && self.getEditor().getModel()?.uri.fsPath != resource.fsPath
+				&& model.getValue() != modelContent){
+				model.dispose();
+				model = null;
+			}
+			if(model == null) {
+				model = monaco.editor.createModel(
+					modelContent,
+					language,
+					resource
+				);
+			}
+			return model;
+		}
+
+		return {
+			createModelReference: function(uri: monaco.Uri) {
+				return new Promise(function (r, e) {
+					if (self.getEditor().getModel()!.uri.fsPath == uri.fsPath){
+						const textEditorModel = {
+							load() {
+							return Promise.resolve(textEditorModel)
+							},
+							dispose() {},
+							textEditorModel: monaco.editor.getModel(uri)
+						}
+						r({
+							object: textEditorModel,
+							dispose() {}
+						});
+					}else{
+						ws.on(self.namespace + "_modelResolved" + uri.fsPath, (content: string) => {
+							let previewModel = getModel(uri, content);
+							let textEditorModel = {
+								load() {
+								return Promise.resolve(textEditorModel)
+								},
+								dispose() {},
+								textEditorModel: previewModel
+							}
+							r({
+								object: textEditorModel,
+								dispose() {}
+							});
+							let container = self.elemdiv.parentElement;
+							let width = container?.clientWidth;
+							if (width == null){
+								width = 0;
+							}
+							let height = container?.clientHeight;
+							if (height == null){
+								height = 0;
+							}
+							self.editor.layout({height: height + 1, width: width + 1});
+							self.editor.layout({height: height, width: width});
+						});
+						ws.send(self.namespace + "_getContentOf", {path: uri.fsPath});
+					}
+				 });
+			},
+			registerTextModelContentProvider: () => ({ dispose: () => {} })
+		}
+	}
+
+	private editorTweaks(bindEclipseLsp: boolean): void{
+		let ws = this.webSocket;
+		let namespace = this.namespace;
+		if (bindEclipseLsp) {
+			this.editor.addAction({
+				id: 'findAllReferences',
+				label: 'Find All References',
+				keybindings: [
+					monaco.KeyMod.Alt | monaco.KeyMod.Shift | monaco.KeyCode.F12
+				],
+				precondition: "editorHasSelection",
+				contextMenuGroupId: 'navigation',
+				contextMenuOrder: 6.0,
+				run: function (editor: monaco.editor.IStandaloneCodeEditor): void {
+					ws.send(namespace + "_findAllReferences");
+				}
+			});
+		}
+
+		StandaloneCodeEditorServiceImpl.prototype.doOpenEditor = function (editor: any, input: any) {
+			ws.send("_openCodeEditor", { path: input.resource.path, selection: input.options.selection });
+			return null;
+		};
+		RenameAction.prototype.runCommand = function (accessor: any, args: any) {
+			ws.send(namespace + "_makeRename");
+			return null;
+		};
+	}
+
 	public create(element: HTMLElement, filePath?: string): void {
-		this.webSocket.on("_doCreateEditor", (values: { text: string; name: string; namespace: string; lspPath?: string; rootUri?: string }) => {
+		this.webSocket.on("_doCreateEditor", (values: { text: string; name: string; namespace: string; bindEclipseLsp: boolean; lspPath?: string; rootUri?: string }) => {
 			if (!this.wasCreated) {
 				this.namespace = values.namespace;
 
@@ -169,91 +269,15 @@ export class EquoMonacoEditor {
 
 				let language = this.createModelAndGetLanguage(values.name, values.text);
 
-				let ws = this.webSocket;
-				let self = this;
-				let getModel = function(resource: monaco.Uri, modelContent: string){
-					var model = null;
-					if(resource !== null)
-						model = monaco.editor.getModel(resource);
-					if (model !== null && self.getEditor().getModel()?.uri.fsPath != resource.fsPath
-						&& model.getValue() != modelContent){
-						model.dispose();
-						model = null;
-					}
-					if(model == null) {
-						model = monaco.editor.createModel(
-							modelContent,
-							language,
-							resource
-						);
-					}
-					return model;
-				}
-
 				this.editor = monaco.editor.create(element, {
 					model: this.model,
 					lightbulb: {
 						enabled: true
 					},
 					automaticLayout: true
-				}, { textModelService: {
-						createModelReference: function(uri: monaco.Uri) {
-							return new Promise(function (r, e) {
-								if (self.getEditor().getModel()?.uri.fsPath == uri.fsPath){
-									const textEditorModel = {
-										load() {
-										return Promise.resolve(textEditorModel)
-										},
-										dispose() {},
-										textEditorModel: monaco.editor.getModel(uri)
-									}
-									r({
-										object: textEditorModel,
-										dispose() {}
-									});
-								}else{
-									ws.on(values.namespace + "_modelResolved" + uri.fsPath, (content: string) => {
-										let previewModel = getModel(uri, content);
-										let textEditorModel = {
-											load() {
-											return Promise.resolve(textEditorModel)
-											},
-											dispose() {},
-											textEditorModel: previewModel
-										}
-										r({
-											object: textEditorModel,
-											dispose() {}
-										});
-										let container = self.elemdiv.parentElement;
-										let width = container?.clientWidth;
-										if (width == null){
-											width = 0;
-										}
-										let height = container?.clientHeight;
-										if (height == null){
-											height = 0;
-										}
-										self.editor.layout({height: height + 1, width: width + 1});
-										self.editor.layout({height: height, width: width});
-									});
-									ws.send(values.namespace + "_getContentOf", {path: uri.fsPath});
-								}
-							 });
-						},
-						registerTextModelContentProvider: () => ({ dispose: () => {} })
-					}
-				});
+				}, { textModelService: this.generateTextModelService(language)});
 
-				StandaloneCodeEditorServiceImpl.prototype.doOpenEditor = function (editor: any, input: any) {
-					ws.send("_openCodeEditor", { path: input.resource.path, selection: input.options.selection });
-					return null;
-				};
-				let namespace = values.namespace;
-				RenameAction.prototype.runCommand = function (accessor: any, args: any) {
-					ws.send(namespace + "_makeRename");
-					return null;
-				};
+				this.editorTweaks(values.bindEclipseLsp);
 
 				if (this.shortcutsAdded) {
 					this.activateShortcuts();
