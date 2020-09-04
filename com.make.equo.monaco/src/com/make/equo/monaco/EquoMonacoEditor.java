@@ -529,12 +529,24 @@ public class EquoMonacoEditor {
 		dispose = true;
 	}
 
-	public void setContent(String content) {
+	/**
+	 * Set new content into the editor
+	 * 
+	 * @param content The new content to be setted
+	 * @param asEdit  If true, the content will be setted as an edition and an Undo
+	 *                operation will be available. If false, the content will be
+	 *                setted without Undo stack, as if it was the first content
+	 *                loaded
+	 */
+	public void setContent(String content, boolean asEdit) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("content", content);
+		response.put("asEdit", asEdit);
 		if (loaded) {
-			equoEventHandler.send(namespace + "_setContent", content);
+			equoEventHandler.send(namespace + "_setContent", response);
 		} else {
 			addOnLoadListener((IEquoRunnable<Void>) runnable -> {
-				equoEventHandler.send(namespace + "_setContent", content);
+				equoEventHandler.send(namespace + "_setContent", response);
 			});
 		}
 	}

@@ -418,8 +418,16 @@ export class EquoMonacoEditor {
 			this.notifyChanges();
 		});
 
-		this.webSocket.on(this.namespace + "_setContent", (content: string) => {
-			this.editor.setValue(content);
+		this.webSocket.on(this.namespace + "_setContent", (values: {content: string, asEdit: boolean}) => {
+			let editor = this.editor;
+			if (values.asEdit){
+				editor.executeEdits('', [{
+					range: editor.getModel()!.getFullModelRange(), 
+					text: values.content
+				}]);
+			}else{
+				editor.setValue(values.content);
+			}
 			if (!this.isDirty()){
 				this.lastSavedVersionId = this.lastSavedVersionId - 1;
 			}

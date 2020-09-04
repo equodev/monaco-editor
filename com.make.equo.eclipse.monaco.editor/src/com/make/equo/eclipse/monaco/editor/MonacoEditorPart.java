@@ -268,7 +268,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 					documentProvider = new MonacoEditorDocumentProvider(editor);
 					editorConfigs();
 					if (setContentDirty) {
-						editor.setContent(textContent);
+						editor.setContent(textContent, false);
 					}
 
 					getSite().setSelectionProvider(selectionProvider);
@@ -301,7 +301,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			@Override
 			public void documentChanged(DocumentEvent event) {
 				if (reload)
-					editor.setContent(fileBuffer.getDocument().get());
+					editor.setContent(fileBuffer.getDocument().get(), true);
 			}
 		};
 		document.addDocumentListener(ownDocumentListener);
@@ -352,7 +352,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			public void dirtyStateChanged(IFileBuffer buffer, boolean isDirty) {
 				if (file.getLocation().toPortableString().endsWith(buffer.getLocation().toPortableString())) {
 					if (reload)
-						editor.setContent(ownDocument.get());
+						editor.setContent(ownDocument.get(), true);
 				}
 			}
 
