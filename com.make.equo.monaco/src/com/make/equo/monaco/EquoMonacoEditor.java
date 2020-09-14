@@ -418,7 +418,7 @@ public class EquoMonacoEditor {
 		getContentsAsync(content -> {
 			Display.getDefault().asyncExec(() -> {
 				String fileContent = getFileContent();
-				if (fileContent == null || !content.equals(fileContent)) {
+				if (fileContent == null || !content.trim().equals(fileContent.trim())) {
 					equoEventHandler.send(namespace + "_reportChanges");
 				}
 			});

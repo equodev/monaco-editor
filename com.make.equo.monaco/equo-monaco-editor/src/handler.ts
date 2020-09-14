@@ -436,7 +436,11 @@ export class EquoMonacoEditor {
 		});
 
 		this.webSocket.on(this.namespace + "_doReload", (content: string) => {
-			this.editor.setValue(content);
+			let editor = this.editor;
+			editor.executeEdits('', [{
+				range: editor.getModel()!.getFullModelRange(), 
+				text: content
+			}]);
 			this.clearDirtyState();
 			this.setTextLabel("");
 			this.notifyChanges();
