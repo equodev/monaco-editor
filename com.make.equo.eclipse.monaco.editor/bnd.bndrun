@@ -34,13 +34,13 @@ alljars: ${map;param2jar;${bundlesVers.all}}
 	osgi.compatibility.bootdelegation=true,\
 	launch.storage.dir=_rt/cfg
 -runprogramargs: \
-    "-artifactRepository file:///${workspace}/cnf/p2repo \
-	-metadataRepository file:///${workspace}/cnf/p2repo \
-	-configs gtk.linux.x86 \
-	-bundles ${alljars} \
-	-features ${repo;com.make.equo.monaco.feature;latest} \
-	-publishArtifacts \
-	-overwriteArtifacts"
+    -artifactRepository, file:///${workspace}/cnf/p2repo, \
+	-metadataRepository, file:${workspace}/cnf/p2repo, \
+	-configs, gtk.linux.x86, \
+	-bundles, "${alljars}", \
+	-features, ${repo;com.make.equo.monaco.feature;latest}, \
+	-publishArtifacts, \
+	-overwriteArtifacts
 	
 -runbundles: \
 	bndtools.runtime.eclipse.applaunch;version='[0.1.0,0.1.1)',\
