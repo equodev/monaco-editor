@@ -95,6 +95,8 @@ release:
   script:
     - gradle $gradle_opt release
     - gradle $gradle_opt publish
+    - gradle $gradle_opt run.bnd
+    - gradle $gradle_opt publishP2
     - gradle com.make.equo.monaco:yarnPublish --rerun-tasks
   only:
     - master
