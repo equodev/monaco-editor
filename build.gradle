@@ -1,12 +1,17 @@
 equo {
     channel = "rls"
-    space = "monaco-editor"
+    space = "equo-monaco-editor"
 }
 
 task uploadMetadata(type: com.make.equo.UploadMetadataTask) {
 }
 
 task publish(type: com.make.equo.UploadRepoTask, dependsOn: [uploadMetadata]) {
+}
+
+task publishP2(type: com.make.equo.UploadRepoTask) {
+    source = file("./cnf/p2repo")
+    prefix = "rls/p2/"
 }
 
 task wrapper(type: Wrapper) {
