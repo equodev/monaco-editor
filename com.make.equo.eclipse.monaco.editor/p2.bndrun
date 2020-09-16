@@ -1,3 +1,5 @@
+#Runs the FeatuersAndPublished app to a create a P2 repository with the runbundles list
+#of com.make.equo.eclipse.monaco.editor and the feature com.make.equo.monaco.feature
 -include ./bnd.bnd
 -runfw: org.eclipse.osgi;version='[3.15.100.v20191114-1701,3.15.100.v20191114-1701]'
 -runee: JavaSE-1.8
