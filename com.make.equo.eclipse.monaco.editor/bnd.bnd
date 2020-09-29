@@ -92,6 +92,7 @@ runbundles: \
 	com.make.equo.ws.api;version='[0.1.6,0.1.7)',\
 	com.make.equo.ws.provider;version='[0.1.6,0.1.7)',\
 	io.netty.all;version='[4.0.44,4.0.45)',\
+	javax.activation;version='[1.1.0,1.1.1)',\
 	javax.inject;version='[1.0.0,1.0.1)',\
 	javax.servlet-api;version='[3.1.0,3.1.1)',\
 	org.apache.batik.constants;version='[1.11.0,1.11.1)',\
@@ -229,7 +230,8 @@ runbundles: \
 	osgi.identity;filter:='(osgi.identity=org.eclipse.swt.chromium.64b)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.swt.chromium.cocoa.macosx.x86_64)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.swt.chromium.gtk.linux.x86_64)',\
-	osgi.identity;filter:='(osgi.identity=org.eclipse.swt.chromium.win32.win32.x86_64)'
+	osgi.identity;filter:='(osgi.identity=org.eclipse.swt.chromium.win32.win32.x86_64)',\
+	osgi.identity;filter:='(&(osgi.identity=javax.activation)(version>=1.1.0))'
 
 -runfw: org.eclipse.osgi;version='[3.15.100.v20191114-1701,3.15.100.v20191114-1701]'
 -runee: JavaSE-1.8
