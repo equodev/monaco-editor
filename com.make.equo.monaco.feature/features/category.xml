@@ -5,7 +5,7 @@
    </feature>
    <category-def name="equo_editor" label="Equo Editor">
       <description>
-         Equo Editor for Eclipse RCP apps
+         Equo Editor for Eclipse RCP apps. https://www.equoplatform.com
       </description>
    </category-def>
 </site>
