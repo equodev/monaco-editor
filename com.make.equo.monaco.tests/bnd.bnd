@@ -1,6 +1,6 @@
 Test-Cases: ${classes;CONCRETE;PUBLIC;NAMED;*Test}
 
--include https://testing-core.ams3.digitaloceanspaces.com/rls/0.1.6/testbundle.bnd,https://testing-core.ams3.digitaloceanspaces.com/rls/0.1.6/testbundlecoverage.bnd,https://ams3.digitaloceanspaces.com/equo-framework/rls/0.1.6/ext/equocore.bnd
+-include https://testing-core.ams3.digitaloceanspaces.com/0.2.0/testbundle.bnd,https://testing-core.ams3.digitaloceanspaces.com/0.2.0/testbundlecoverage.bnd,https://ams3.digitaloceanspaces.com/equo-framework/0.2.0/ext/equocore.bnd
 
 -includeresource: \
     resources/
