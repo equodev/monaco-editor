@@ -6,6 +6,7 @@ Private-Package: \
 	com.make.equo.eclipse.monaco.lsp,\
 	com.make.equo.eclipse.monaco.editor.handlers
 Import-Package: com.make.equo.monaco,\
+	org.osgi.framework;version='[1.0,2)',\
     *
 -buildpath: \
 	com.google.gson,\
