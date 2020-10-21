@@ -1,10 +1,10 @@
--include: https://equo-framework.ams3.digitaloceanspaces.com/rls/0.1.6/equobuild.bnd,https://testing-core.ams3.digitaloceanspaces.com/rls/0.1.6/testbuild.bnd
+-include: https://equo-framework.ams3.digitaloceanspaces.com/0.2.0/equobuild.bnd,https://testing-core.ams3.digitaloceanspaces.com/0.2.0/testbuild.bnd
 
 -plugin.1.Release: \
     aQute.bnd.deployer.repository.LocalIndexedRepo; \
         name = Release; \
         local = ${build}/release; \
-        type = P2|R5
+        type = R5
 
 -plugin.2.P2Plugins: \
     aQute.bnd.repository.osgi.OSGiRepository; \

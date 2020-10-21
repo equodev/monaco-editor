@@ -14,10 +14,6 @@ task publishP2(type: com.make.equo.UploadRepoTask) {
     prefix = "rls/p2/"
 }
 
-task wrapper(type: Wrapper) {
-  jarFile = rootProject.file('.gradle-wrapper/gradle-wrapper.jar')
-}
-
 allprojects {
     apply plugin: "java"
     apply plugin: "jacoco"
@@ -27,7 +23,7 @@ allprojects {
     }
 
     jacoco {
-        toolVersion = '0.8.5'
+        toolVersion = '0.8.6'
     }
 }
 
