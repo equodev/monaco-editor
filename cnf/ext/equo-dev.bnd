@@ -20,3 +20,9 @@ javac.debug:            on
         name = "Maven Central"; \
         readOnly = true; \
         cache = ~/.bnd/cache/mvncentral
+
+-runblacklist: \
+	bnd.identity;id='org.eclipse.rap.*',\
+	bnd.identity;id='org.eclipse.swt.cocoa*',\
+	bnd.identity;id='org.eclipse.swt.gtk*',\
+	bnd.identity;id='org.eclipse.swt.win*'
