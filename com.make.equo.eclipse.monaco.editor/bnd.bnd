@@ -2,12 +2,12 @@ Bundle-ActivationPolicy: lazy
 Bundle-Version: ${version}.${tstamp}
 Bundle-SymbolicName: com.make.equo.eclipse.monaco.editor;singleton:=true
 Private-Package: \
-	com.make.equo.eclipse.monaco.editor,\
 	com.make.equo.eclipse.monaco.lsp,\
 	com.make.equo.eclipse.monaco.editor.handlers
 Import-Package: com.make.equo.monaco,\
 	org.osgi.framework;version='[1.0,2)',\
     *
+Export-Package: com.make.equo.eclipse.monaco.editor
 -buildpath: \
 	com.google.gson,\
 	org.eclipse.ui,\
