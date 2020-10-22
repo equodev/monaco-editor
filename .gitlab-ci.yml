@@ -27,18 +27,27 @@ cache:
 before_script:
   - *global_before_scripts
 
-.all:
+.allReports:
   artifacts:
     reports:
        junit:
           - "*/generated/test-reports/test/TEST-*.xml"
           - "*/generated/test-reports/testOSGi/TEST-*.xml"
     paths:
+      - com.make.equo*/generated/*.jar
+      - com.make.equo*/generated/jacoco/test.exec
+    expire_in: 12w
+
+.all:
+  extends: .allReports
+  artifacts:
+    paths:
       - cnf/release
       - cnf/cache
       - cnf/build
       - build
       - build-cache
+      - com.make.equo*/resources
       - com.make.equo*/generated/*.jar
       - com.make.equo*/generated/jacoco/test.exec
     expire_in: 12w
@@ -59,7 +68,7 @@ test:
     - gradle $gradle_opt test
 
 test.integration:
-  extends: .all
+  extends: .allReports
   image: registry.gitlab.com/maketechpub/docker/adopt:ubuntu.jdk8.gtk3
   stage: test
   before_script:
