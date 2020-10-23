@@ -28,10 +28,10 @@
   resolved "https://dev.registry.equoplatform.com/@equo%2fservice-manager/-/service-manager-0.1.0.tgz#72c3f574403dab6ea5426424078ba430c6bec158"
   integrity sha512-ZT+pqtqAk28Y4U8uwCcdkBzOz7YX/YPw9T+6WerGxW+ItvMk8adTLeYAOih8w9NBg5j6Zdb8MgXLWcK7LX8uOg==
 
-"@equo/websocket@^0.1.0":
-  version "0.1.0"
-  resolved "https://dev.registry.equoplatform.com/@equo%2fwebsocket/-/websocket-0.1.0.tgz#cab5562f76c9cafbcabe54c4b7e91a898222799c"
-  integrity sha512-KUsG0R5mXERJlL8MvV5/fm4bMQSMWqiKX+hjCHzlbRipRghunDsuTfe58lNkOdoZxs72jXPUt4hAsBhQMib1fg==
+"@equo/websocket@^0.1.1":
+  version "0.1.1"
+  resolved "https://dev.registry.equoplatform.com/@equo%2fwebsocket/-/websocket-0.1.1.tgz#58e7328da1ca20b6016bf451e4a282dc90bdaa4b"
+  integrity sha512-gemYtW+KIfAnQSgPh1viPer1imqHHIRdfPW1gWexMsZC3cnk3PkFTTLrm76PeEuxmQeX3a5bjaX00o+KZMb4Qw==
   dependencies:
     "@equo/service-manager" "^0.1.0"
 
