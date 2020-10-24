@@ -68,7 +68,8 @@ Export-Package: com.make.equo.eclipse.monaco.editor
 	org.eclipse.lsp4j.jsonrpc.source,\
 	org.eclipse.lsp4j.source,\
 	org.eclipse.core.filebuffers,\
-	org.eclipse.core.filebuffers.source
+	org.eclipse.core.filebuffers.source,\
+	org.slf4j.api
 -includeresource: resources/
 runbundles: \
 	Java-WebSocket;version='[1.5.1,1.5.2)',\

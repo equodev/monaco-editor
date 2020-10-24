@@ -55,6 +55,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Reference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.make.equo.eclipse.monaco.editor.handlers.LSFindReferences;
 import com.make.equo.eclipse.monaco.editor.handlers.LSPRenameHandler;
@@ -65,6 +67,7 @@ import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
 
 public class MonacoEditorPart extends EditorPart implements ITextEditor {
+	protected static final Logger logger = LoggerFactory.getLogger(MonacoEditorPart.class);
 
 	@Reference
 	private EquoMonacoEditorWidgetBuilder monacoBuilder;
@@ -280,7 +283,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 					activateActions();
 				} catch (Exception e) {
 					e.printStackTrace();
-					System.out.println("Couldn't retrieve Monaco Editor service");
+					logger.error("Couldn't retrieve Monaco Editor service");
 				}
 			} catch (CoreException | IOException e) {
 				e.printStackTrace();
