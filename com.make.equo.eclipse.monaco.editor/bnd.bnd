@@ -81,6 +81,9 @@ runbundles: \
 	com.google.guava;version='[21.0.0,21.0.1)',\
 	com.google.guava;version='[27.1.0,27.1.1)',\
 	com.ibm.icu;version='[64.2.0,64.2.1)',\
+	com.make.chromium.cef.cocoa.macosx.x86_64;version='[69.0.0,69.0.1)',\
+	com.make.chromium.cef.gtk.linux.x86_64;version='[69.0.0,69.0.1)',\
+	com.make.chromium.cef.win32.win32.x86_64;version='[69.0.0,69.0.1)',\
 	com.make.equo.aer.api;version='[0.2.0,0.2.1)',\
 	com.make.equo.contribution.api;version='[0.2.0,0.2.1)',\
 	com.make.equo.contribution.provider;version='[0.2.0,0.2.1)',\
@@ -218,8 +221,7 @@ runbundles: \
 	org.w3c.dom.events;version='[3.0.0,3.0.1)',\
 	org.w3c.dom.smil;version='[1.0.1,1.0.2)',\
 	org.w3c.dom.svg;version='[1.1.0,1.1.1)',\
-	org.xbill.dns;version='[2.0.8,2.0.9)',\
-	slf4j.api;version='[1.7.25,1.7.26)'
+	org.xbill.dns;version='[2.0.8,2.0.9)'
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=com.make.equo.eclipse.monaco.editor)',\
 	osgi.identity;filter:='(osgi.identity=com.make.equo.contribution.provider)',\
@@ -232,7 +234,10 @@ runbundles: \
 	osgi.identity;filter:='(osgi.identity=org.eclipse.swt.chromium.gtk.linux.x86_64)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.swt.chromium.win32.win32.x86_64)',\
 	osgi.identity;filter:='(osgi.identity=javax.xml.bind)',\
-	osgi.identity;filter:='(&(osgi.identity=javax.activation)(version>=1.1.0))'
+	osgi.identity;filter:='(&(osgi.identity=javax.activation)(version>=1.1.0))',\
+	osgi.identity;filter:='(osgi.identity=com.make.chromium.cef.cocoa.macosx.x86_64)',\
+	osgi.identity;filter:='(osgi.identity=com.make.chromium.cef.gtk.linux.x86_64)',\
+	osgi.identity;filter:='(osgi.identity=com.make.chromium.cef.win32.win32.x86_64)'
 
 -runfw: org.eclipse.osgi;version='[3.15.100.v20191114-1701,3.15.100.v20191114-1701]'
 -runee: JavaSE-1.8
