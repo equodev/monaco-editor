@@ -79,6 +79,7 @@ test.integration:
     - apt-get install -y nodejs    
   script:
     - ./gradlew $gradle_opt testOSGi
+    - kill $(pidof Xvfb)
 
 coverage.report:
   extends: .all
