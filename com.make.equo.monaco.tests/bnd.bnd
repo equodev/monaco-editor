@@ -155,8 +155,8 @@ fragment.and.cocoa:${if;${matches;${tolower;${os.name}};.*mac.*};${cef.fragment}
 	org.eclipse.osgi.services;version='[3.8.0,3.8.1)',\
 	org.eclipse.osgi.util;version='[3.5.300,3.5.301)',\
 	org.eclipse.swt;version='[3.113.0,3.113.1)',\
-	org.eclipse.swt.chromium;version='[76.2.7,77.0.0)',\
-	org.eclipse.swt.chromium.64b;version='[76.2.7,77.0.0)',\
+	org.eclipse.swt.chromium;version='[76.0.8,77.0.0)',\
+	org.eclipse.swt.chromium.64b;version='[76.0.8,77.0.0)',\
 	org.eclipse.text;version='[3.10.0,3.10.1)',\
 	org.hamcrest;version='[2.2.0,2.2.1)',\
 	org.mockito.mockito-all;version='[1.10.19,1.10.20)',\
