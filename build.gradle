@@ -9,6 +9,12 @@ task uploadMetadata(type: com.make.equo.UploadMetadataTask) {
 task publish(type: com.make.equo.UploadRepoTask, dependsOn: [uploadMetadata]) {
 }
 
+task P2Repo(type: Copy) {
+    dependsOn subprojects*.tasks*.findByName('run.p2').minus(null)
+    from file("./p2.index")
+    into file("./cnf/p2repo")
+}
+
 task publishP2(type: com.make.equo.UploadRepoTask) {
     source = file("./cnf/p2repo")
     prefix = "rls/p2/"

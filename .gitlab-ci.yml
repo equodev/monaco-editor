@@ -105,7 +105,7 @@ release:
   script:
     - gradle $gradle_opt release
     - gradle $gradle_opt publish
-    - gradle $gradle_opt run.p2
+    - gradle $gradle_opt P2Repo
     - gradle $gradle_opt run.p2category
     - gradle $gradle_opt publishP2
     - gradle com.make.equo.monaco:yarnPublish --rerun-tasks
