@@ -10,8 +10,7 @@
 -runprogramargs: \
 	-metadataRepository, file:${workspace}/cnf/p2repo, \
 	-categoryDefinition, file:${workspace}/com.make.equo.monaco.feature/features/category.xml, \
-	-categoryQualifier, \
-	-compress
+	-categoryQualifier
 
 -runbundles: \
 	org.eclipse.equinox.p2.updatesite;version='[1.1.300,1.1.301)'
