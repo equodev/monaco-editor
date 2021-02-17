@@ -234,6 +234,20 @@ export class EquoMonacoEditor {
 	private editorTweaks(bindEclipseLsp: boolean): void{
 		let ws = this.webSocket;
 		let namespace = this.namespace;
+		this.editor.addAction({
+			id: 'wordWrap',
+			label: 'Word Wrap',
+			keybindings: [
+				monaco.KeyMod.Alt | monaco.KeyCode.KEY_Z
+			],
+			run: function (editor: monaco.editor.IStandaloneCodeEditor): void {
+				if (editor.getOption(monaco.editor.EditorOption.wordWrap) == "off") {
+					editor.updateOptions({ wordWrap: "on" })
+				} else {
+					editor.updateOptions({ wordWrap: "off" })
+				}
+			}
+		});
 		if (bindEclipseLsp) {
 			this.editor.addAction({
 				id: 'findAllReferences',
