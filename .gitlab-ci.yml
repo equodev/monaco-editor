@@ -78,7 +78,7 @@ test.integration:
     - curl -sL https://deb.nodesource.com/setup_10.x | bash -
     - apt-get install -y nodejs    
   script:
-    - ./gradlew $gradle_opt testOSGi
+    - ./gradlew $gradle_opt testOSGi || (kill $(pidof Xvfb) && false)
     - kill $(pidof Xvfb)
 
 coverage.report:
