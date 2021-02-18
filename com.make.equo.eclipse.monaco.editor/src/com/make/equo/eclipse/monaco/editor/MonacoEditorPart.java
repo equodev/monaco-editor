@@ -110,7 +110,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 							monitor);
 					editor.handleAfterSave();
 				} catch (CoreException e) {
-					e.printStackTrace();
+					logger.error("Error storing new content in file", e);
 				}
 			});
 		}
@@ -145,7 +145,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 			file.getLocation().toFile().createNewFile();
 			file.getParent().refreshLocal(1, new NullProgressMonitor());
 		} catch (IOException | CoreException e) {
-			e.printStackTrace();
+			logger.error("Failure creating destination file", e);
 			return;
 		}
 
@@ -162,7 +162,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 				f1.setAccessible(true);
 				f1.set(this, input);
 			} catch (IllegalAccessException | IllegalArgumentException | SecurityException | NoSuchFieldException e) {
-				e.printStackTrace();
+				logger.error("Couldn't set input to the editor", e);
 			}
 		}
 	}
@@ -173,7 +173,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 			f1.setAccessible(true);
 			f1.set(this, new MonacoSourceViewer(this));
 		} catch (IllegalAccessException | IllegalArgumentException | SecurityException | NoSuchFieldException e) {
-			e.printStackTrace();
+			logger.error("Couldn't set source viewer", e);
 		}
 	}
 
@@ -251,7 +251,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 									editor.reInitialize(textContent, newInput.getPath().toString(), getRootPath(file),
 											lspProxy);
 								} catch (IOException | CoreException e) {
-									e.printStackTrace();
+									logger.error("Couldn't read file content", e);
 								}
 							}
 						}
@@ -313,11 +313,10 @@ public class MonacoEditorPart extends AbstractTextEditor {
 					createMonacoActions();
 					activateActions();
 				} catch (Exception e) {
-					e.printStackTrace();
-					logger.error("Couldn't retrieve Monaco Editor service");
+					logger.error("Couldn't retrieve Monaco Editor service", e);
 				}
 			} catch (CoreException | IOException e) {
-				e.printStackTrace();
+				logger.error("Couldn't read file content", e);
 			}
 
 		}
@@ -439,7 +438,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 				return new EclipseLspProxy(lspServer);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Error obtaining language servers", e);
 		}
 		return null;
 	}
@@ -478,7 +477,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
 					handlerService.executeCommand(IWorkbenchCommandConstants.FILE_RENAME, null);
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.error("Error calling Renaming handler", e);
 				}
 			});
 		});
@@ -501,7 +500,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
 					handlerService.executeCommand(GENERICEDITOR_FIND_REFERENCES, null);
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.error("Error calling Find References handler", e);
 				}
 			});
 		});

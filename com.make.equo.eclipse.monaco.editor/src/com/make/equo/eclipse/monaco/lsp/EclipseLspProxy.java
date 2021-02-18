@@ -12,6 +12,8 @@ import org.eclipse.lsp4e.LanguageServerWrapper;
 import org.eclipse.lsp4e.LaunchConfigurationStreamProvider;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 import org.eclipse.lsp4e.server.StreamConnectionProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.make.equo.monaco.lsp.LspProxy;
 
@@ -20,13 +22,15 @@ public class EclipseLspProxy extends LspProxy {
 	private StreamConnectionProvider streamConnectionProvider;
 	private Process process;
 
+	protected static final Logger logger = LoggerFactory.getLogger(EclipseLspProxy.class);
+
 	public EclipseLspProxy(LanguageServerWrapper lspServer) {
 		try {
 			Field field = lspServer.getClass().getDeclaredField("lspStreamProvider");
 			field.setAccessible(true);
 			this.streamConnectionProvider = (StreamConnectionProvider) field.get(lspServer);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Error obtaining LSP stream provider", e);
 		}
 	}
 
@@ -49,7 +53,7 @@ public class EclipseLspProxy extends LspProxy {
 			field.setAccessible(true);
 			return (Process) field.get(streamConnectionProvider);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Error obtaining language server process", e);
 		}
 		return null;
 	}
@@ -69,7 +73,7 @@ public class EclipseLspProxy extends LspProxy {
 				startProxy(streamIn, streamOut);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Error starting language server", e);
 		}
 	}
 
