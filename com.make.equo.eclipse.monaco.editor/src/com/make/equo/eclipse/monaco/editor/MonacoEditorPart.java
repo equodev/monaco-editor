@@ -330,8 +330,6 @@ public class MonacoEditorPart extends AbstractTextEditor {
 		ownDocumentListener = new IDocumentListener() {
 			@Override
 			public void documentAboutToBeChanged(DocumentEvent event) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
@@ -362,26 +360,18 @@ public class MonacoEditorPart extends AbstractTextEditor {
 
 			@Override
 			public void bufferDisposed(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void bufferContentAboutToBeReplaced(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void bufferContentReplaced(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void stateChanging(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
@@ -394,26 +384,18 @@ public class MonacoEditorPart extends AbstractTextEditor {
 
 			@Override
 			public void stateValidationChanged(IFileBuffer buffer, boolean isStateValidated) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void underlyingFileMoved(IFileBuffer buffer, IPath path) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void underlyingFileDeleted(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void stateChangeFailed(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 		};
@@ -563,75 +545,55 @@ public class MonacoEditorPart extends AbstractTextEditor {
 
 	@Override
 	public void close(boolean save) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public boolean isEditable() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void doRevertToSaved() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void setAction(String actionID, IAction action) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public IAction getAction(String actionId) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void setActionActivationCode(String actionId, char activationCharacter, int activationKeyCode,
 			int activationStateMask) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void removeActionActivationCode(String actionId) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public boolean showsHighlightRangeOnly() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void showHighlightRangeOnly(boolean showHighlightRangeOnly) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void setHighlightRange(int offset, int length, boolean moveCursor) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public IRegion getHighlightRange() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void resetHighlightRange() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
