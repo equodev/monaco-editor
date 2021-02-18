@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Collection;
 
@@ -25,16 +28,35 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IAutoIndentStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.IEventConsumer;
+import org.eclipse.jface.text.IFindReplaceTarget;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextDoubleClickStrategy;
+import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextInputListener;
+import org.eclipse.jface.text.ITextListener;
+import org.eclipse.jface.text.ITextOperationTarget;
+import org.eclipse.jface.text.IUndoManager;
+import org.eclipse.jface.text.IViewportListener;
+import org.eclipse.jface.text.TextPresentation;
+import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.IAnnotationHover;
+import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.lsp4e.LSPEclipseUtils;
 import org.eclipse.lsp4e.LanguageServerWrapper;
 import org.eclipse.lsp4e.LanguageServiceAccessor;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -44,11 +66,13 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.Saveable;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.dialogs.SaveAsDialog;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.osgi.framework.BundleContext;
@@ -66,7 +90,7 @@ import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
 
-public class MonacoEditorPart extends EditorPart implements ITextEditor {
+public class MonacoEditorPart extends AbstractTextEditor {
 	protected static final Logger logger = LoggerFactory.getLogger(MonacoEditorPart.class);
 
 	@Reference
@@ -145,17 +169,43 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			return;
 		}
 
-		setInput(newInput);
+		setInputOnEditorPart(newInput);
 		initializeNewInput(newInput);
 		editor.setFilePath(((FileEditorInput) newInput).getPath().toString());
 		doSave(new NullProgressMonitor());
 	}
 
+	protected void setInputOnEditorPart(IEditorInput input) {
+		if (input != null) {
+			try {
+				Field f1 = this.getClass().getSuperclass().getSuperclass().getDeclaredField("editorInput");
+				f1.setAccessible(true);
+				f1.set(this, input);
+			} catch (IllegalAccessException | IllegalArgumentException | SecurityException | NoSuchFieldException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	protected void setSourceViewer() {
+		try {
+			Field f1 = this.getClass().getSuperclass().getDeclaredField("fSourceViewer");
+			f1.setAccessible(true);
+			f1.set(this, new MonacoSourceViewer(this));
+		} catch (IllegalAccessException | IllegalArgumentException | SecurityException | NoSuchFieldException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public Saveable[] getSaveables() {
+		return new Saveable[] {};
+	}
+
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-		setInput(input);
+		setInputOnEditorPart(input);
 		setSite(site);
-
 	}
 
 	@Override
@@ -202,7 +252,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 								IPath newPath = delta.getMovedToPath();
 								IFile file = workspace.getRoot().getFile(newPath);
 								FileEditorInput newInput = new FileEditorInput(file);
-								setInput(newInput);
+								setInputOnEditorPart(newInput);
 								initializeNewInput(newInput);
 								LspProxy lspProxy = getLspProxy(file);
 								try (InputStream contents = file.getContents()) {
@@ -236,6 +286,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	public void createPartControl(Composite parent) {
 		System.setProperty("swt.chromium.debug", "true");
 		IEditorInput input = getEditorInput();
+		setSourceViewer();
 		if (input instanceof FileEditorInput) {
 			FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
@@ -279,7 +330,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 					getSite().setSelectionProvider(selectionProvider);
 
-					createActions();
+					createMonacoActions();
 					activateActions();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -449,7 +500,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 				}
 			});
 		});
-		
+
 		editor.configGetModel(uri -> {
 			IResource resource = LSPEclipseUtils.findResourceFor(uri);
 			if (resource != null && resource instanceof IPath) {
@@ -474,7 +525,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		});
 	}
 
-	private void createActions() {
+	private void createMonacoActions() {
 		undoAction = new EditorAction(() -> editor.undo());
 		redoAction = new EditorAction(() -> editor.redo());
 		copyAction = new EditorAction(() -> editor.copy(), selectionProvider);
