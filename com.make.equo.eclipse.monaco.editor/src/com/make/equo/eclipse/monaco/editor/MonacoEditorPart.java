@@ -44,6 +44,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.Saveable;
@@ -61,8 +62,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.make.equo.eclipse.monaco.editor.handlers.LSFindReferences;
-import com.make.equo.eclipse.monaco.editor.handlers.LSPRenameHandler;
 import com.make.equo.eclipse.monaco.lsp.EclipseLspProxy;
 import com.make.equo.monaco.EquoMonacoEditor;
 import com.make.equo.monaco.lsp.LspProxy;
@@ -70,6 +69,8 @@ import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
 
 public class MonacoEditorPart extends AbstractTextEditor {
+	private static final String GENERICEDITOR_FIND_REFERENCES = "org.eclipse.ui.genericeditor.findReferences";
+
 	protected static final Logger logger = LoggerFactory.getLogger(MonacoEditorPart.class);
 
 	@Reference
@@ -475,7 +476,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 			Display.getDefault().asyncExec(() -> {
 				try {
 					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
-					handlerService.executeCommand(LSPRenameHandler.COMMAND_ID, null);
+					handlerService.executeCommand(IWorkbenchCommandConstants.FILE_RENAME, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -498,7 +499,7 @@ public class MonacoEditorPart extends AbstractTextEditor {
 			Display.getDefault().asyncExec(() -> {
 				try {
 					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
-					handlerService.executeCommand(LSFindReferences.COMMAND_ID, null);
+					handlerService.executeCommand(GENERICEDITOR_FIND_REFERENCES, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
