@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Collection;
 
@@ -42,15 +43,18 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.Saveable;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.dialogs.SaveAsDialog;
 import org.eclipse.ui.handlers.IHandlerService;
-import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.internal.DefaultSaveable;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
-import org.eclipse.ui.texteditor.ITextEditor;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
@@ -58,15 +62,15 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.make.equo.eclipse.monaco.editor.handlers.LSFindReferences;
-import com.make.equo.eclipse.monaco.editor.handlers.LSPRenameHandler;
 import com.make.equo.eclipse.monaco.lsp.EclipseLspProxy;
 import com.make.equo.monaco.EquoMonacoEditor;
 import com.make.equo.monaco.lsp.LspProxy;
 import com.make.equo.server.api.IEquoServer;
 import com.make.equo.ws.api.IEquoRunnable;
 
-public class MonacoEditorPart extends EditorPart implements ITextEditor {
+public class MonacoEditorPart extends AbstractTextEditor {
+	private static final String GENERICEDITOR_FIND_REFERENCES = "org.eclipse.ui.genericeditor.findReferences";
+
 	protected static final Logger logger = LoggerFactory.getLogger(MonacoEditorPart.class);
 
 	@Reference
@@ -106,7 +110,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 							monitor);
 					editor.handleAfterSave();
 				} catch (CoreException e) {
-					e.printStackTrace();
+					logger.error("Error storing new content in file", e);
 				}
 			});
 		}
@@ -141,21 +145,47 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			file.getLocation().toFile().createNewFile();
 			file.getParent().refreshLocal(1, new NullProgressMonitor());
 		} catch (IOException | CoreException e) {
-			e.printStackTrace();
+			logger.error("Failure creating destination file", e);
 			return;
 		}
 
-		setInput(newInput);
+		setInputOnEditorPart(newInput);
 		initializeNewInput(newInput);
 		editor.setFilePath(((FileEditorInput) newInput).getPath().toString());
 		doSave(new NullProgressMonitor());
 	}
 
+	protected void setInputOnEditorPart(IEditorInput input) {
+		if (input != null) {
+			try {
+				Field f1 = this.getClass().getSuperclass().getSuperclass().getDeclaredField("editorInput");
+				f1.setAccessible(true);
+				f1.set(this, input);
+			} catch (IllegalAccessException | IllegalArgumentException | SecurityException | NoSuchFieldException e) {
+				logger.error("Couldn't set input to the editor", e);
+			}
+		}
+	}
+
+	protected void setSourceViewer() {
+		try {
+			Field f1 = this.getClass().getSuperclass().getDeclaredField("fSourceViewer");
+			f1.setAccessible(true);
+			f1.set(this, new MonacoSourceViewer(this));
+		} catch (IllegalAccessException | IllegalArgumentException | SecurityException | NoSuchFieldException e) {
+			logger.error("Couldn't set source viewer", e);
+		}
+	}
+
+	@Override
+	public Saveable[] getSaveables() {
+		return new Saveable[] { new DefaultSaveable(this) };
+	}
+
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-		setInput(input);
+		setInputOnEditorPart(input);
 		setSite(site);
-
 	}
 
 	@Override
@@ -202,7 +232,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 								IPath newPath = delta.getMovedToPath();
 								IFile file = workspace.getRoot().getFile(newPath);
 								FileEditorInput newInput = new FileEditorInput(file);
-								setInput(newInput);
+								setInputOnEditorPart(newInput);
 								initializeNewInput(newInput);
 								LspProxy lspProxy = getLspProxy(file);
 								try (InputStream contents = file.getContents()) {
@@ -221,7 +251,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 									editor.reInitialize(textContent, newInput.getPath().toString(), getRootPath(file),
 											lspProxy);
 								} catch (IOException | CoreException e) {
-									e.printStackTrace();
+									logger.error("Couldn't read file content", e);
 								}
 							}
 						}
@@ -236,6 +266,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	public void createPartControl(Composite parent) {
 		System.setProperty("swt.chromium.debug", "true");
 		IEditorInput input = getEditorInput();
+		setSourceViewer();
 		if (input instanceof FileEditorInput) {
 			FileEditorInput fileInput = (FileEditorInput) input;
 			setTitleToolTip(fileInput.getPath().toString());
@@ -279,14 +310,13 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 					getSite().setSelectionProvider(selectionProvider);
 
-					createActions();
+					createMonacoActions();
 					activateActions();
 				} catch (Exception e) {
-					e.printStackTrace();
-					logger.error("Couldn't retrieve Monaco Editor service");
+					logger.error("Couldn't retrieve Monaco Editor service", e);
 				}
 			} catch (CoreException | IOException e) {
-				e.printStackTrace();
+				logger.error("Couldn't read file content", e);
 			}
 
 		}
@@ -300,8 +330,6 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 		ownDocumentListener = new IDocumentListener() {
 			@Override
 			public void documentAboutToBeChanged(DocumentEvent event) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
@@ -332,26 +360,18 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 			@Override
 			public void bufferDisposed(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void bufferContentAboutToBeReplaced(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void bufferContentReplaced(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void stateChanging(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
@@ -364,26 +384,18 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 			@Override
 			public void stateValidationChanged(IFileBuffer buffer, boolean isStateValidated) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void underlyingFileMoved(IFileBuffer buffer, IPath path) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void underlyingFileDeleted(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void stateChangeFailed(IFileBuffer buffer) {
-				// TODO Auto-generated method stub
-
 			}
 
 		};
@@ -408,7 +420,7 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 				return new EclipseLspProxy(lspServer);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Error obtaining language servers", e);
 		}
 		return null;
 	}
@@ -416,7 +428,9 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	private void editorConfigs() {
 		IEquoRunnable<Boolean> dirtyListener = (isDirty) -> {
 			this.isDirty = isDirty;
-			firePropertyChange(PROP_DIRTY);
+			Display.getDefault().asyncExec(() -> {
+				firePropertyChange(PROP_DIRTY);
+			});
 		};
 
 		IEquoRunnable<Boolean> redoListener = (canRedo) -> {
@@ -443,13 +457,13 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			Display.getDefault().asyncExec(() -> {
 				try {
 					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
-					handlerService.executeCommand(LSPRenameHandler.COMMAND_ID, null);
+					handlerService.executeCommand(IWorkbenchCommandConstants.FILE_RENAME, null);
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.error("Error calling Renaming handler", e);
 				}
 			});
 		});
-		
+
 		editor.configGetModel(uri -> {
 			IResource resource = LSPEclipseUtils.findResourceFor(uri);
 			if (resource != null && resource instanceof IPath) {
@@ -466,15 +480,15 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 			Display.getDefault().asyncExec(() -> {
 				try {
 					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
-					handlerService.executeCommand(LSFindReferences.COMMAND_ID, null);
+					handlerService.executeCommand(GENERICEDITOR_FIND_REFERENCES, null);
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.error("Error calling Find References handler", e);
 				}
 			});
 		});
 	}
 
-	private void createActions() {
+	private void createMonacoActions() {
 		undoAction = new EditorAction(() -> editor.undo());
 		redoAction = new EditorAction(() -> editor.redo());
 		copyAction = new EditorAction(() -> editor.copy(), selectionProvider);
@@ -531,75 +545,55 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 
 	@Override
 	public void close(boolean save) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public boolean isEditable() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void doRevertToSaved() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void setAction(String actionID, IAction action) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public IAction getAction(String actionId) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void setActionActivationCode(String actionId, char activationCharacter, int activationKeyCode,
 			int activationStateMask) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void removeActionActivationCode(String actionId) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public boolean showsHighlightRangeOnly() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void showHighlightRangeOnly(boolean showHighlightRangeOnly) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void setHighlightRange(int offset, int length, boolean moveCursor) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public IRegion getHighlightRange() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void resetHighlightRange() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -610,6 +604,11 @@ public class MonacoEditorPart extends EditorPart implements ITextEditor {
 	@Override
 	public void selectAndReveal(int offset, int length) {
 		editor.selectAndReveal(offset, length);
+	}
+
+	@Override
+	public void saveState(IMemento memento) {
+
 	}
 
 }
