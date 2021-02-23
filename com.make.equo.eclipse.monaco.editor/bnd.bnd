@@ -1,9 +1,7 @@
 Bundle-ActivationPolicy: lazy
 Bundle-Version: ${version}.${tstamp}
 Bundle-SymbolicName: com.make.equo.eclipse.monaco.editor;singleton:=true
-Private-Package: \
-	com.make.equo.eclipse.monaco.lsp,\
-	com.make.equo.eclipse.monaco.editor.handlers
+Private-Package: com.make.equo.eclipse.monaco.lsp
 Import-Package: com.make.equo.monaco,\
 	org.osgi.framework;version='[1.0,2)',\
     *
@@ -32,6 +30,7 @@ Export-Package: com.make.equo.eclipse.monaco.editor
 	org.eclipse.swt.win32.win32.x86_64.source,\
 	org.eclipse.swt.gtk.linux.x86_64,\
 	org.eclipse.swt.gtk.linux.x86_64.source,\
+	com.make.equo.contribution.api;version=latest,\
 	com.make.equo.monaco;version=latest,\
 	com.make.equo.filesystem.api;version=latest,\
 	com.make.equo.ws.api;version=latest,\
@@ -70,7 +69,10 @@ Export-Package: com.make.equo.eclipse.monaco.editor
 	org.eclipse.core.filebuffers,\
 	org.eclipse.core.filebuffers.source,\
 	org.slf4j.api
--includeresource: resources/
+-includeresource: \
+    resources/,\
+	monaco_resources/,\
+    node_modules/=node_modules/
 runbundles: \
 	Java-WebSocket;version='[1.5.1,1.5.2)',\
 	ch.qos.logback.classic;version='[1.1.2,1.1.3)',\
@@ -241,3 +243,4 @@ runbundles: \
 
 -runfw: org.eclipse.osgi;version='[3.15.100.v20191114-1701,3.15.100.v20191114-1701]'
 -runee: JavaSE-1.8
+-privatepackage: com.make.equo.eclipse.monaco.contribution

@@ -1,4 +1,4 @@
-package com.make.equo.monaco.util;
+package com.make.equo.eclipse.monaco.contribution;
 
 public interface IMonacoConstants {
 

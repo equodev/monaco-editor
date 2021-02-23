@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "workspaces": [
+    "equo-monaco-editor-bundle"
+  ],
+  "dependencies": {
+    "lerna": "^3.20.2"
+  },
+  "scripts": {
+    "prepare": "lerna run prepare"
+  }
+}

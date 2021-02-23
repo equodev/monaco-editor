@@ -1,7 +1,5 @@
 package com.make.equo.monaco;
 
-import static com.make.equo.monaco.util.IMonacoConstants.EQUO_MONACO_CONTRIBUTION_NAME;
-
 import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
@@ -75,11 +73,11 @@ public class EquoMonacoEditor {
 	}
 
 	public EquoMonacoEditor(Composite parent, int style, IEquoEventHandler handler,
-			IEquoWebSocketService websocketService, IEquoFileSystem equoFileSystem) {
+			IEquoWebSocketService websocketService, IEquoFileSystem equoFileSystem, String editorUrl) {
 		this(handler, equoFileSystem);
 		browser = new Browser(parent, style);
 		String wsPort = String.format("&equowsport=%s", String.valueOf(websocketService.getPort()));
-		browser.setUrl("http://" + EQUO_MONACO_CONTRIBUTION_NAME + "?namespace=" + namespace + wsPort);
+		browser.setUrl("http://" + editorUrl + "?namespace=" + namespace + wsPort);
 	}
 
 	public EquoMonacoEditor(IEquoEventHandler handler, IEquoFileSystem equoFileSystem) {

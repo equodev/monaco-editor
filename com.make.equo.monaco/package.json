@@ -1,7 +1,6 @@
 {
   "private": true,
   "workspaces": [
-    "equo-monaco-editor-bundle",
     "equo-monaco-editor"
   ],
   "dependencies": {
