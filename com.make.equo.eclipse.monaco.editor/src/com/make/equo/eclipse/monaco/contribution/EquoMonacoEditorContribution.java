@@ -1,7 +1,7 @@
-package com.make.equo.monaco;
+package com.make.equo.eclipse.monaco.contribution;
 
-import static com.make.equo.monaco.util.IMonacoConstants.BASE_HTML_FILE;
-import static com.make.equo.monaco.util.IMonacoConstants.EQUO_MONACO_CONTRIBUTION_NAME;
+import static com.make.equo.eclipse.monaco.contribution.IMonacoConstants.BASE_HTML_FILE;
+import static com.make.equo.eclipse.monaco.contribution.IMonacoConstants.EQUO_MONACO_CONTRIBUTION_NAME;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;

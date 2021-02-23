@@ -1,5 +1,7 @@
 package com.make.equo.eclipse.monaco.editor;
 
+import static com.make.equo.eclipse.monaco.contribution.IMonacoConstants.EQUO_MONACO_CONTRIBUTION_NAME;
+
 import java.io.File;
 
 import org.eclipse.core.filesystem.EFS;
@@ -89,7 +91,7 @@ public class EquoMonacoEditorWidgetBuilder extends AbstractEquoMonacoEditorBuild
 			style = parent.getStyle();
 		}
 		EquoMonacoEditor editor = new EquoMonacoEditor(parent, style, equoEventHandler, websocketService,
-				equoFileSystem);
+				equoFileSystem, EQUO_MONACO_CONTRIBUTION_NAME);
 		editor.setRootPath(rootPath);
 		createEditor(editor, contents, filePath, lsp);
 		return editor;

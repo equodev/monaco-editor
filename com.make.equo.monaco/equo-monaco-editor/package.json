@@ -17,6 +17,7 @@
     "monaco-languageclient": "^0.13.0",
     "normalize-url": "^5.0.0",
     "reconnecting-websocket": "^3.2.2",
+    "typescript": "^3.8.3",
     "vscode-ws-jsonrpc": "^0.2.0"
   },
   "scripts": {

@@ -1,0 +1,28 @@
+apply plugin: "com.moowork.node"
+
+node {
+  download = true
+  version = node_version
+}
+
+yarn_install {
+  doFirst {
+    mkdir 'monaco_resources'
+    mkdir 'node_modules'
+  }
+  inputs.files {
+    project.file('package.json')
+    project.file('yarn.lock')
+  }
+  outputs.dirs {
+    project.file('monaco_resources')
+    project.file('node_modules')
+  }
+  outputs.cacheIf {
+    true
+  }
+}
+
+processResources {
+  from yarn_install
+}

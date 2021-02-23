@@ -1,6 +1,6 @@
 const path = require('path');
 const lib = path.resolve(__dirname, "lib");
-const resources = path.resolve(__dirname, "../resources/");
+const resources = path.resolve(__dirname, "../monaco_resources/");
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const common = {
