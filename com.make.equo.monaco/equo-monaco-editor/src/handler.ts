@@ -247,6 +247,16 @@ export class EquoMonacoEditor {
   private editorTweaks(bindEclipseLsp: boolean): void {
     let ws = this.webSocket;
     let namespace = this.namespace;
+
+    this.editor.addAction({
+      id: "paste-action",
+      label: "Paste",
+      contextMenuGroupId: "9_cutcopypaste",
+      contextMenuOrder: 3,
+      run: function (editor: monaco.editor.IStandaloneCodeEditor): void {
+        document.execCommand("paste");
+      },
+    });
     this.editor.addAction({
       id: "wordWrap",
       label: "Word Wrap",
@@ -502,13 +512,12 @@ export class EquoMonacoEditor {
     });
 
     this.webSocket.on(this.namespace + "_doPaste", () => {
-      this.editor.focus();
-      this.webSocket.send(this.namespace + "_canPaste");
+      document.execCommand("paste");
     });
 
     this.webSocket.on(this.namespace + "_doSelectAll", () => {
-      this.editor.focus();
-      this.webSocket.send(this.namespace + "_canSelectAll");
+      const range = this.editor.getModel()!.getFullModelRange();
+      this.editor.setSelection(range);
     });
 
     this.webSocket.on(this.namespace + "_reportChanges", () => {

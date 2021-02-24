@@ -1,8 +1,5 @@
 package com.make.equo.monaco;
 
-import java.awt.AWTException;
-import java.awt.Robot;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
@@ -204,35 +201,6 @@ public class EquoMonacoEditor {
 			onLoadListener.run(null);
 		}
 		onLoadListeners.clear();
-
-		equoEventHandler.on(namespace + "_canPaste", (IEquoRunnable<Void>) runnable -> {
-			try {
-				Robot robot = new Robot();
-				// Simulate a key press
-				robot.keyPress(KeyEvent.VK_CONTROL);
-				robot.keyPress(KeyEvent.VK_V);
-				robot.keyRelease(KeyEvent.VK_V);
-				robot.keyRelease(KeyEvent.VK_CONTROL);
-			} catch (AWTException e) {
-				e.printStackTrace();
-			}
-		});
-
-		equoEventHandler.on(namespace + "_canSelectAll", (IEquoRunnable<Void>) runnable -> {
-			try {
-				Robot robot = new Robot();
-				// Simulate a key press
-				robot.keyPress(KeyEvent.VK_CONTROL);
-				robot.keyPress(KeyEvent.VK_A);
-				robot.keyRelease(KeyEvent.VK_A);
-				robot.keyRelease(KeyEvent.VK_CONTROL);
-			} catch (AWTException e) {
-				e.printStackTrace();
-			}
-		});
-		if (!filePath.equals("")) {
-			listenChangesPath();
-		}
 
 	}
 
