@@ -14,14 +14,15 @@
         "webpack-cli": "^3.3.11",
         "css-loader": "^3.4.2",
         "style-loader": "^1.1.3",
-        "file-loader": "^5.0.2"
+        "file-loader": "^5.0.2",
+        "ncp": "^2.0.0"
     },
     "scripts": {
         "prepare": "yarn run clean && yarn run build",
         "clean": "rimraf lib && rimraf ../resources",
         "build": "yarn run compile && webpack && yarn run copy",
         "compile": "tsc",
-        "copy": "cpx src/index.html ../resources/ && cp -avr lib/* ../resources/"
+        "copy": "cpx src/index.html ../resources/ && ncp lib ../resources/"
     },
     "private": true
 }

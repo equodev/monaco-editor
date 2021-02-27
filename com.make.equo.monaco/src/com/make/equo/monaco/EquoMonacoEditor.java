@@ -148,7 +148,12 @@ public class EquoMonacoEditor {
 	protected void createEditor(String content, String filePath, LspProxy lsp) {
 		this.initialContent = content;
 		if (filePath.startsWith("file:")) {
-			setFilePath(filePath.substring(5));
+			if (filePath.length() > 7 && filePath.charAt(7) == ':') {
+				// Case of Windows URLs whose URIs are "file:/[LETTER]:/..."
+				setFilePath(filePath.substring(6));
+			} else {
+				setFilePath(filePath.substring(5));
+			}
 		} else {
 			setFilePath(filePath);
 		}
