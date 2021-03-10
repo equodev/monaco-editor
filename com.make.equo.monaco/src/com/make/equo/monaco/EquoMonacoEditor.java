@@ -142,6 +142,7 @@ public class EquoMonacoEditor {
 	public void initialize(String contents, String fileName, String filePath) {
 		this.filePath = filePath;
 		this.fileName = fileName;
+		listenChangesPath();
 		handleCreateEditor(contents, null, false);
 	}
 
