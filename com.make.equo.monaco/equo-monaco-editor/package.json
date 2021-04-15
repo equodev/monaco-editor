@@ -12,7 +12,7 @@
     "/lib"
   ],
   "dependencies": {
-    "@equo/websocket": "^0.1.2",
+    "@equo/websocket": "^0.1.4",
     "monaco-editor": "^0.23.0",
     "monaco-languageclient": "^0.13.1-next.9",
     "normalize-url": "^5.0.0",

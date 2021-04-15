@@ -376,12 +376,14 @@ export class EquoMonacoEditor {
   public activateShortcuts(): void {
     this.shortcutsAdded = true;
     let thisEditor = this;
-    this.editor.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
-      function () {
-        thisEditor.save();
-      }
-    );
+    if (this.editor) {
+      this.editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
+        function () {
+          thisEditor.save();
+        }
+      );
+    }
   }
 
   private actionForFileChange(): void {
@@ -468,6 +470,7 @@ export class EquoMonacoEditor {
     );
 
     this.webSocket.on(this.namespace + "_doFind", () => {
+      this.editor.focus();
       this.editor.getAction("actions.find").run();
     });
 
