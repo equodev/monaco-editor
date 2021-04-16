@@ -1,4 +1,4 @@
-import { listen, MessageConnection } from "vscode-ws-jsonrpc";
+import { listen } from "vscode-ws-jsonrpc";
 import {
   MonacoLanguageClient,
   CloseAction,
@@ -116,7 +116,7 @@ export class EquoMonacoEditor {
     language: string
   ): void {
     if (lspPath) {
-      MonacoServices.install(this.editor, { rootUri: rootUri });
+      MonacoServices.install(monaco, { rootUri: rootUri });
 
       // create the web socket
       var url = normalizeUrl(lspPath);
@@ -135,7 +135,7 @@ export class EquoMonacoEditor {
     }
 
     function createLanguageClient(
-      connection: MessageConnection
+      connection: any
     ): MonacoLanguageClient {
       return new MonacoLanguageClient({
         name: "Sample Language Client",
@@ -248,15 +248,6 @@ export class EquoMonacoEditor {
     let ws = this.webSocket;
     let namespace = this.namespace;
 
-    this.editor.addAction({
-      id: "paste-action",
-      label: "Paste",
-      contextMenuGroupId: "9_cutcopypaste",
-      contextMenuOrder: 3,
-      run: function (editor: monaco.editor.IStandaloneCodeEditor): void {
-        document.execCommand("paste");
-      },
-    });
     this.editor.addAction({
       id: "wordWrap",
       label: "Word Wrap",
@@ -385,12 +376,14 @@ export class EquoMonacoEditor {
   public activateShortcuts(): void {
     this.shortcutsAdded = true;
     let thisEditor = this;
-    this.editor.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
-      function () {
-        thisEditor.save();
-      }
-    );
+    if (this.editor) {
+      this.editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
+        function () {
+          thisEditor.save();
+        }
+      );
+    }
   }
 
   private actionForFileChange(): void {
@@ -477,6 +470,7 @@ export class EquoMonacoEditor {
     );
 
     this.webSocket.on(this.namespace + "_doFind", () => {
+      this.editor.focus();
       this.editor.getAction("actions.find").run();
     });
 
@@ -504,11 +498,11 @@ export class EquoMonacoEditor {
     });
 
     this.webSocket.on(this.namespace + "_doCopy", () => {
-      this.editor.getAction("editor.action.clipboardCopyAction").run();
+      document.execCommand("copy");
     });
 
     this.webSocket.on(this.namespace + "_doCut", () => {
-      this.editor.getAction("editor.action.clipboardCutAction").run();
+      document.execCommand("cut");
     });
 
     this.webSocket.on(this.namespace + "_doPaste", () => {
