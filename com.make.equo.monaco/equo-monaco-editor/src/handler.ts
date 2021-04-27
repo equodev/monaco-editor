@@ -32,6 +32,10 @@ export class EquoMonacoEditor {
   private sendChangesToJavaSide: boolean = false;
   private shortcutsAdded: boolean = false;
 
+  /**
+   * @name EquoMonacoEditor
+   * @class
+   */
   constructor(websocket: EquoWebSocket) {
     this.webSocket = websocket;
     this.elemdiv = document.createElement("div");
@@ -41,19 +45,31 @@ export class EquoMonacoEditor {
     this.filePathChangedCallback = this.actionForFileChange;
     this.notifyChangeCallback = () => {};
   }
-
+  /**
+   * Gets the Monaco editor.
+   * @returns {IStandaloneCodeEditor}
+   */
   public getEditor(): monaco.editor.IStandaloneCodeEditor {
     return this.editor;
   }
-
+  /**
+   * Gets the file path
+   * @returns {string}
+   */
   public getFilePath(): string {
     return this.filePath;
   }
-
+  /**
+   * Gets the file name.
+   * @returns {string}
+   */
   public getFileName(): string {
     return this.fileName;
   }
-
+  /**
+   * Destroy this model.
+   * @returns {void}
+   */
   public dispose(): void {
     if (this.lspws) {
       //@ts-ignore
@@ -68,24 +84,46 @@ export class EquoMonacoEditor {
     this.editor.dispose();
     this.webSocket.send(this.namespace + "_disposeEditor");
   }
-
+  /**
+   * Saves the file content in custom path.
+   * @returns {void}
+   */
   public saveAs(): void {
     this.webSocket.send(this.namespace + "_doSaveAs");
   }
-
+  /**
+   * Saves the file content in default path.
+   * @returns {void}
+   */
   public save(): void {
     this.webSocket.send(this.namespace + "_doSave");
   }
-
+  /**
+   * Reloads the document content.
+   * @returns {void}
+   */
   public reload(): void {
     this.webSocket.send(this.namespace + "_doReload");
   }
-
-  public setFilePathChangedListener(callback: Function) {
+  /**
+   * @callback listenerCallback
+   * @param {string} filePath - Path file.
+   * @param {string} fileName - File name.
+   */
+  /**
+   * Sets the custom callback when file path changed.
+   * @param {listenerCallback} callback 
+   * @returns {void}
+   */
+  public setFilePathChangedListener(callback: (filePath: string, fileName: string) => {}) {
     this.filePathChangedCallback = callback;
   }
-
-  public setActionDirtyState(callback: Function) {
+  /**
+   * Sets a custom action when file changes are reported.
+   * @param {funtion} callback
+   * @returns {void}
+   */
+  public setActionOnNotifyChanges(callback: Function) {
     this.notifyChangeCallback = callback;
   }
 
@@ -300,7 +338,11 @@ export class EquoMonacoEditor {
       return null;
     };
   }
-
+  /**
+   * Initializes the EquoMonacoEditor instance.
+   * @param {HTMLElement} element - Element on which the editor will be placed
+   * @param {string} [filePath] - Optional
+   */
   public create(element: HTMLElement, filePath?: string): void {
     this.webSocket.on(
       "_doCreateEditor",
@@ -356,23 +398,40 @@ export class EquoMonacoEditor {
     if (filePath) this.filePath = filePath;
     this.webSocket.send("_createEditor", { filePath: filePath });
   }
-
+  /**
+   * Gets the document state.
+   * @returns {boolean} True if dirty (contains unsaved modifications) or false if not dirty.
+   */
   public isDirty(): boolean {
     return this.lastSavedVersionId !== this.model.getAlternativeVersionId();
   }
-
+  /**
+   * Cleans the dirty state from the file.
+   * @returns {void}
+   */
   public clearDirtyState() {
     this.lastSavedVersionId = this.model.getAlternativeVersionId();
   }
-
+  /**
+   * Sets the message when file was externally modified.
+   * @param {string} text - Message.
+   * @returns {void}
+   */
   public setTextLabel(text: string): void {
     this.elemdiv.innerText = text;
   }
-
+  /**
+   * Sets the DOM element for output message when state is dirty.
+   * @param {HTMLElement} element - Element for contain dirty status message
+   * @returns {void}
+   */
   public setLabelChanges(element: HTMLElement): void {
     this.elemdiv = element;
   }
-
+  /**
+   * Activates the shortcuts
+   * @returns {void}
+   */
   public activateShortcuts(): void {
     this.shortcutsAdded = true;
     let thisEditor = this;
@@ -586,10 +645,22 @@ export class EquoMonacoEditor {
     this.notifyChangeCallback();
   }
 }
-
+/**
+ * @namespace
+ * @description The Equo Editor is a drop-in replacement for the Eclipse Generic Editor. based on Monaco web editor (same as VSCode).
+It brings the beauty and the capabilities of a modern editor into Eclipse.
+ *
+ */
 export namespace EquoMonaco {
   var websocket: EquoWebSocket = EquoWebSocketService.get();
-
+  /**
+   * Creates a new editor under DOM element.
+   * @function
+   * @name create
+   * @param {HTMLElement} element 
+   * @param {string} [filePath] - Optional.
+   * @returns {EquoMonacoEditor}
+   */
   export function create(
     element: HTMLElement,
     filePath?: string
@@ -598,7 +669,14 @@ export namespace EquoMonaco {
     monacoEditor.create(element, filePath);
     return monacoEditor;
   }
-
+  /**
+   * Adds a lsp server to be used by the editors on the files with the given extensions.
+   * @function
+   * @name addLspServer
+   * @param {string[]} executionParameters - The parameters needed to start the lsp server through stdio. Example: ["html-languageserver", "--stdio"].
+   * @param {string[]} extensions - A collection of extensions for what the editor will use the given lsp server. The extensions must not have the initial dot. Example: ["php", "php4"].
+   * @returns {void}
+   */
   export function addLspServer(
     executionParameters: Array<string>,
     extensions: Array<string>
@@ -608,11 +686,24 @@ export namespace EquoMonaco {
       extensions: extensions,
     });
   }
-
+  /**
+   * Removes a lsp server assigned to the given extensions.
+   * @function
+   * @name removeLspServer
+   * @param {string[]} extensions - A collection of the file extensions for which the previously assigned lsp will be removed The extensions must not have the initial dot. Example: ["php", "php4"].
+   * @returns {void}
+   */
   export function removeLspServer(extensions: Array<string>): void {
     websocket.send("_removeLspServer", { extensions: extensions });
   }
-
+  /**
+   * Adds a lsp websocket server to be used by the editors on the files with the given extensions.
+   * @function
+   * @name addLspWsServer
+   * @param {string} fullServerPath - The full path to the lsp server. Example: ws://127.0.0.1:3000/lspServer.
+   * @param {string[]} extensions - A collection of extensions for what the editor will use the given lsp server. The extensions must not have the initial dot. Example: ["php", "php4"].
+   * @returns {void}
+   */
   export function addLspWsServer(
     fullServerPath: string,
     extensions: Array<string>

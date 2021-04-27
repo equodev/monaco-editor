@@ -1,6 +1,6 @@
 {
   "name": "@equo/equo-monaco-editor",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Monaco Editor for Eclipse",
   "license": "UNLICENSED",
   "publishConfig": {
@@ -12,7 +12,7 @@
     "/lib"
   ],
   "dependencies": {
-    "@equo/websocket": "^0.1.4",
+    "@equo/websocket": "^0.1.5",
     "monaco-editor": "^0.23.0",
     "monaco-languageclient": "^0.13.1-next.9",
     "normalize-url": "^5.0.0",
@@ -20,10 +20,14 @@
     "typescript": "^3.8.3",
     "vscode-ws-jsonrpc": "^0.2.0"
   },
+  "devDependencies": {
+    "jsdoc-to-markdown": "^6.0.0"
+  },
   "scripts": {
-    "prepare": "yarn run clean && yarn run build",
+    "prepare": "yarn run clean && yarn run build && yarn run jsdoc2md",
     "clean": "rimraf lib",
     "build": "yarn run compile",
-    "compile": "tsc"
+    "compile": "tsc",
+    "jsdoc2md": "jsdoc2md lib/**/*.js > equo-monaco-editor-doc.md"
   }
 }
