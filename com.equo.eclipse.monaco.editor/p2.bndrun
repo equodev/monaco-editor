@@ -2,30 +2,23 @@
 #of com.equo.eclipse.monaco.editor and the feature com.equo.monaco.feature
 -include ./bnd.bnd,./p2common.bnd
 
-#Because version ranges use the comma as a delimiter, we need to make a few replacements to avoid confusing it as a list separator:
-#replace "," for "°"
-stringBundles: ${sjoin;°;${runbundles}}
-#replace "°" (previous ",") in ranges (those that are between two numbers) for "¬"
-replace1: ${subst;${stringBundles};(\\d)°(\\d);$1¬$2}
 #remove "version=" part. Separator between bundle name and version changed to "@"
-replace2: ${subst;${replace1};°version=;@}
+bundlesVers.all: ${subst;${runbundles};version=;}
 
-#replace the separator between bundles for "," again to make a list of bundles "bundle.name@'[minVer¬maxVer)'"
-bundlesVers.all: ${subst;${replace2};°;,}
+#remove quotes from version
+getVer: ${subst;${1};'(.*)';$1}
 
-getBsn: ${first;${split;@;${1}}}
-calcVer: ${subst;${get;1;${split;@;${1}}};'(.*)';$1}
-getVer: ${subst;${calcVer;${1}};¬;,}
-param2jar: ${repo;${getBsn;${1}};${getVer;${1}}}
+param2jar: ${repo;${1};${getVer;${2}}}
 alljars: ${map;param2jar;${bundlesVers.all}}
 
 -runproperties: \
 	eclipse.application=org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher
 -runprogramargs: \
-    -artifactRepository, file:///${workspace}/cnf/p2repo, \
-	-metadataRepository, file:${workspace}/cnf/p2repo, \
+    -artifactRepository, file:///${workspace}/cnf/release, \
+	-metadataRepository, file:${workspace}/cnf/release, \
 	-configs, gtk.linux.x86, \
 	-bundles, "${alljars}", \
 	-features, ${repo;com.equo.monaco.feature;latest}, \
 	-publishArtifacts, \
+	-compress,\
 	-overwriteArtifacts

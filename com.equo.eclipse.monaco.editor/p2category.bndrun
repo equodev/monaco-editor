@@ -8,7 +8,7 @@
 	eclipse.application=org.eclipse.equinox.p2.publisher.CategoryPublisher
 
 -runprogramargs: \
-	-metadataRepository, file:${workspace}/cnf/p2repo, \
+	-metadataRepository, file:${workspace}/cnf/release, \
 	-categoryDefinition, file:${workspace}/com.equo.monaco.feature/features/category.xml, \
 	-categoryQualifier
 
