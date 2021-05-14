@@ -38,7 +38,7 @@ chromium.fragment: org.eclipse.swt.chromium.${ws}.${chromiumos}.x86_64
 fragment.and.cocoa:${if;${matches;${tolower;${os.name}};.*mac.*};${cef.fragment},\org.eclipse.e4.ui.workbench.renderers.swt.cocoa;${cef.fragment}},\${chromium.fragment}
 
 -runrequires: \
-	bnd.identity;version='latest';id='com.equo.application.provider',\
+	bnd.identity;version='latest';id='com.equo.application.client',\
 	bnd.identity;id='com.equo.testing.common',\
 	bnd.identity;id='com.equo.testing.common.internal',\
 	bnd.identity;id='org.awaitility',\
@@ -69,7 +69,7 @@ fragment.and.cocoa:${if;${matches;${tolower;${os.name}};.*mac.*};${cef.fragment}
 	com.equo.aer.api,\
 	com.equo.aer.internal.api,\
 	com.equo.analytics.internal.api,\
-	com.equo.application.provider,\
+	com.equo.application.client,\
 	com.equo.contribution.api,\
 	com.equo.contribution.provider,\
 	com.equo.filesystem.api,\
@@ -79,7 +79,7 @@ fragment.and.cocoa:${if;${matches;${tolower;${os.name}};.*mac.*};${cef.fragment}
 	com.equo.server.offline.api,\
 	com.equo.server.provider,\
 	com.equo.testing.common,\
-	com.equo.testing.common.internal;version='[0.0.0,0.0.1)',\
+	com.equo.testing.common.internal;version=latest,\
 	com.equo.ws.api,\
 	com.equo.ws.provider,\
 	io.netty.all;version='[4.0.44,4.0.45)',\
