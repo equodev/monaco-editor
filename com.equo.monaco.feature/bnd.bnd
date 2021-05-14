@@ -1,5 +1,5 @@
 Bundle-ActivationPolicy: lazy
-Bundle-Version: ${version}.${tstamp}
+Bundle-Version: 1.0.0.${tstamp}
 -includeresource: features/
 -runrequires: osgi.identity;filter:='(osgi.identity=com.equo.eclipse.monaco.editor)'
 -runbundles: \

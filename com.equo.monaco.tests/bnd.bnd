@@ -3,7 +3,8 @@ Private-Package: \
 	com.equo.monaco.tests,\
 	com.equo.monaco.tests.util
 
--include https://testing-core.ams3.digitaloceanspaces.com/0.2.0/testbundle.bnd,https://testing-core.ams3.digitaloceanspaces.com/0.2.0/testbundlecoverage.bnd,https://ams3.digitaloceanspaces.com/equo-framework/0.2.0/ext/equocore.bnd
+-include: https://dl.equoplatform.com/testing-core/${testing_core_version}/testbundle.bnd,\
+    https://dl.equoplatform.com/testing-core/${testing_core_version}/testbundlecoverage.bnd
 
 -includeresource: \
     resources/
@@ -47,7 +48,6 @@ fragment.and.cocoa:${if;${matches;${tolower;${os.name}};.*mac.*};${cef.fragment}
 	bnd.identity;id='javax.xml.bind',\
 	bnd.identity;id='javax.annotation',\
 	bnd.identity;id='com.equo.ws.api',\
-	bnd.identity;id='com.equo.server.offline.provider',\
 	bnd.identity;id='com.equo.server.api',\
 	bnd.identity;id='com.equo.server.offline.api',\
 	bnd.identity;id='com.equo.contribution.provider',\
@@ -66,23 +66,22 @@ fragment.and.cocoa:${if;${matches;${tolower;${os.name}};.*mac.*};${cef.fragment}
 	com.google.gson;version='[2.8.2,2.8.3)',\
 	com.google.guava;version='[27.0.0,28.0.0)',\
 	com.ibm.icu;version='[64.2.0,64.2.1)',\
-	com.equo.aer.api;version='[0.2.0,0.2.1)',\
-	com.equo.aer.internal.api;version='[0.2.0,0.2.1)',\
-	com.equo.analytics.internal.api;version='[0.2.0,0.2.1)',\
-	com.equo.application.provider;version='[0.2.0,0.2.1)',\
-	com.equo.contribution.api;version='[0.2.0,0.2.1)',\
-	com.equo.contribution.provider;version='[0.2.0,0.2.1)',\
-	com.equo.filesystem.api;version='[0.2.0,0.2.1)',\
-	com.equo.filesystem.provider;version='[0.2.0,0.2.1)',\
+	com.equo.aer.api,\
+	com.equo.aer.internal.api,\
+	com.equo.analytics.internal.api,\
+	com.equo.application.provider,\
+	com.equo.contribution.api,\
+	com.equo.contribution.provider,\
+	com.equo.filesystem.api,\
+	com.equo.filesystem.provider,\
 	com.equo.monaco;version=snapshot,\
-	com.equo.server.api;version='[0.2.0,0.2.1)',\
-	com.equo.server.offline.api;version='[0.2.0,0.2.1)',\
-	com.equo.server.offline.provider;version='[0.2.0,0.2.1)',\
-	com.equo.server.provider;version='[0.2.0,0.2.1)',\
-	com.equo.testing.common;version='[0.2.0,0.2.1)',\
+	com.equo.server.api,\
+	com.equo.server.offline.api,\
+	com.equo.server.provider,\
+	com.equo.testing.common,\
 	com.equo.testing.common.internal;version='[0.0.0,0.0.1)',\
-	com.equo.ws.api;version='[0.2.0,0.2.1)',\
-	com.equo.ws.provider;version='[0.2.0,0.2.1)',\
+	com.equo.ws.api,\
+	com.equo.ws.provider,\
 	io.netty.all;version='[4.0.44,4.0.45)',\
 	javax.activation;version='[1.1.0,1.1.1)',\
 	javax.annotation;version='[1.2.0,1.2.1)',\
