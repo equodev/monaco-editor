@@ -34,8 +34,8 @@ before_script:
         - "*/generated/test-reports/test/TEST-*.xml"
         - "*/generated/test-reports/testOSGi/TEST-*.xml"
     paths:
-      - com.make.equo*/generated/*.jar
-      - com.make.equo*/generated/jacoco/test.exec
+      - com.equo*/generated/*.jar
+      - com.equo*/generated/jacoco/test.exec
     expire_in: 12w
 
 .all:
@@ -47,10 +47,10 @@ before_script:
       - cnf/build
       - build
       - build-cache
-      - com.make.equo*/resources
-      - com.make.equo*/monaco_resources
-      - com.make.equo*/generated/*.jar
-      - com.make.equo*/generated/jacoco/test.exec
+      - com.equo*/resources
+      - com.equo*/monaco_resources
+      - com.equo*/generated/*.jar
+      - com.equo*/generated/jacoco/test.exec
     expire_in: 12w
 
 .print_converage: &print_converage
@@ -110,7 +110,7 @@ release:
     - gradle $gradle_opt run.p2category
     - cp p2.index cnf/p2repo && xz -e cnf/p2repo/artifacts.xml && xz -e cnf/p2repo/content.xml
     - gradle $gradle_opt publishP2
-    - gradle com.make.equo.monaco:yarnPublish --rerun-tasks
+    - gradle com.equo.monaco:yarnPublish --rerun-tasks
   only:
     - master
 

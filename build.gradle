@@ -3,13 +3,13 @@ equo {
     space = "equo-monaco-editor"
 }
 
-task uploadMetadata(type: com.make.equo.UploadMetadataTask) {
+task uploadMetadata(type: com.equo.UploadMetadataTask) {
 }
 
-task publish(type: com.make.equo.UploadRepoTask, dependsOn: [uploadMetadata]) {
+task publish(type: com.equo.UploadRepoTask, dependsOn: [uploadMetadata]) {
 }
 
-task publishP2(type: com.make.equo.UploadRepoTask) {
+task publishP2(type: com.equo.UploadRepoTask) {
     source = file("./cnf/p2repo")
     prefix = "rls/p2/"
 }

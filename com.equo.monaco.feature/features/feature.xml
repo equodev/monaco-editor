@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="com.equo.monaco.feature"
+      label="Equo Editor"
+      version="0.2.7"
+      provider-name="Equo">
+
+   <description url="https://www.equoplatform.com/">
+      Equo Editor for Eclipse RCP apps
+   </description>
+
+   <copyright url="https://www.equoplatform.com/">
+      Copyright (c) 2020 Equo.
+      All rights reserved.
+      https://www.equoplatform.com/
+   </copyright>
+
+   <license url="https://www.equoplatform.com/#/trial-license-terms">
+		Trial License Terms
+		READ THIS AGREEMENT CAREFULLY. BY CLICKING ON THE "I Agree" BUTTON OR INSTALLING OR USING ALL OR ANY PORTION OF THE SOFTWARE, YOU ARE ACCEPTING ALL OF THE TERMS AND CONDITIONS OF THIS AGREEMENT. YOU AGREE THAT THIS AGREEMENT IS ENFORCEABLE LIKE ANY WRITTEN NEGOTIATED AGREEMENT SIGNED BY YOU. IF YOU DO NOT AGREE TO ALL OF THESE TERMS AND CONDITIONS, CLICK "I Do Not Agree" OR DO NOT INSTALL NOR USE ALL OR ANY PORTION OF THE SOFTWARE. YOU WILL NOT BE LICENSED TO USE TO THE SOFTWARE UNLESS YOU ACCEPT THE TERMS OF THIS AGREEMENT. IF YOU HAVE PAID A LICENSE FEE FOR USE OF THE SOFTWARE AND DO NOT AGREE TO THESE TERMS, YOU MAY RETURN THE SOFTWARE FOR A FULL REFUND PROVIDED YOU (A) DO NOT USE THE SOFTWARE AND (B) RETURN THE SOFTWARE WITHIN THIRTY (30) DAYS OF YOUR INITIAL PURCHASE. IF YOU WISH TO USE THE SOFTWARE AS AN EMPLOYEE, CONTRACTOR, OR AGENT OF A CORPORATION, PARTNERSHIP OR SIMILAR ENTITY, THEN YOU MUST BE AUTHORIZED TO SIGN FOR AND BIND THE ENTITY IN ORDER TO ACCEPT THE TERMS OF THIS AGREEMENT. THE LICENSES GRANTED UNDER THIS AGREEMENT ARE EXPRESSLY CONDITIONED UPON ACCEPTANCE BY SUCH AUTHORIZED PERSONNEL. IF YOU HAVE ENTERED INTO A SEPARATE WRITTEN LICENSE AGREEMENT WITH EQUO FOR USE OF THE SOFTWARE, THE TERMS AND CONDITIONS OF SUCH OTHER AGREEMENT SHALL PREVAIL OVER ANY CONFLICTING TERMS OR CONDITIONS IN THIS AGREEMENT.
+		
+		This Software Pre-Production License Agreement ("Agreement") is between Equo, LLC, located at 33 8th St, San Francisco, CA 94103 ("Equo") and the customer (individual or entity) that has procured the licensed Software (as defined below) for use as an end user ("you").
+		
+		1. Definitions.
+		Documentation: means any supporting technical documentation provided with the Software. Effective Date: means the date on which the Software is first made available to you. Software: means the Equo software product(s) provided in connection with this Agreement in object code form. Unless otherwise noted, the Software and Documentation are referred to collectively herein as "Software".
+		
+		2. License.
+		2.1 Grant of License. Subject to all of the terms and conditions of this Agreement, Equo grants you a limited, non-exclusive, non-transferable, non-sublicensable license to use the Software internally in any pre-production environment solely for the purpose of quality assurance, testing, and staging. Unless you enter into a separate written agreement with Equo, the Software may not be used in a live production environment. Your license to use the Software is limited to using the Software internally at your designated pre-production site, solely for quality assurance, testing, and staging. Any other use of the Software is expressly prohibited.
+		2.2 Installation and copies. Installation and Copies. Equo shall make the Software and Documentation available for download in electronic form. You may copy and install the Software on up to twenty (20) CPU's in your development environment. You may also make one copy of the Software solely for back-up purposes. All other copying is prohibited.
+		2.3 License restrictions. You shall not:
+		(a) copy the Software or any portion thereof, except for the one permitted backup copy;
+		(b) distribute, sell, rent, lease, sublicense or transfer any copies of the Software, or portions thereof, to a third party or allow a third party to use the Software;
+		(c) modify, decompile, disassemble or otherwise reverse engineer the Software or attempt to reconstruct or discover any source code, underlying ideas, algorithms, file formats or programming interfaces of the Software by any means whatsoever if the Software to the extent the Software is not provided in source code form (except and only to the extent that applicable law prohibits or restricts reverse engineering restrictions);
+		(d) use the Software to develop services or products for sale or include any components of the Software in any product;
+		(e) use any portion of the Software to create a competitive service, product or technology;
+		(f) make the functionality of the Software available to the public in any manner;
+		(g) use the Software in a production environment;
+		(h) remove any product identification, proprietary, copyright or other notices contained in the Software; or
+		(i) publicly disseminate performance information or analysis (including, without limitation, benchmarks) from any source relating to the Software.
+		
+		3. Ownership.
+		Notwithstanding anything to the contrary contained herein, except for the limited license rights expressly provided herein, Equo and its suppliers have and will retain all rights, title and interest (including, without limitation, all patent, copyright, trademark, trade secret and other intellectual property rights) in and to the Software and all copies, modifications and derivative works thereof. You acknowledge that you are obtaining only a limited license right to the Software and that irrespective of any use of the words "purchase", "sale" or like terms hereunder no ownership rights are being conveyed to you under this Agreement or otherwise.
+		
+		4. Payment.
+		
+		No payment from you shall be due for any Software licensed hereunder unless Equo specifically identifies any applicable fees prior to making the Software available to you for download. If any fees are so indicated, you shall pay all such fees in U.S. Dollars. If Equo will be invoicing you for payment, all payments shall be made within thirty (30) days of your receipt of the applicable invoice, unless otherwise specified in writing by Equo. Except as expressly set forth herein, all fees are non-refundable once paid. You shall be responsible for all taxes, withholdings, duties and levies arising from your use of the Software (if any)(excluding taxes based on the net income of Equo). Any late payments shall be subject to a service charge equal to 1.5% per month of the amount due or the maximum amount allowed by law, whichever is less.
+		
+		5. Terms of agreement.
+		5.1 Term. This Agreement is effective as of the Effective. Equo may terminate this Agreement and seek injunctive relief immediately upon any breach by you. In addition, either party may terminate this Agreement if the other party:
+		(a) ceases operation without a successor; or
+		(b) seeks protection under any bankruptcy, receivership, trust deed, creditors arrangement, composition or comparable proceeding, or if any such proceeding is instituted against such party (and not dismissed within sixty (60) days)). Termination is not an exclusive remedy and the exercise by either party of any remedy under this Agreement will be without prejudice to any other remedies it may have under this Agreement, by law, or otherwise.
+		5.2 Termination Upon any expiration or termination of this Agreement, you shall cease any and all use of any Software and destroy all copies thereof (including the backup copy, if made).
+		5.3 No Obligation to Enter Into Further Agreement.No Obligation to Enter Into Further Agreement. Nothing herein obligates either party to enter into any further agreement with the other party. 5.4 Survival. Sections 2.3 (License Restrictions), 3 (Ownership), 4 (Payment), 5 (Term of Agreement), 6 (No Warranty), 8 (Limitation of Remedies and Damages), 9 (Confidential Information), 10 (Export Compliance) and 11 (General) shall survive any termination or expiration of this Agreement.
+		
+		6. No warranty.
+		THE SOFTWARE AND ALL SERVICES ARE PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING, BUT NOT LIMITED TO WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE. YOU MAY HAVE OTHER STATUTORY RIGHTS; HOWEVER, TO THE FULL EXTENT PERMITTED BY LAW, THE DURATION OF STATUTORILY REQUIRED WARRANTIES, IF ANY, SHALL BE LIMITED TO THE MAXIMUM EXTENT PERMITTED BY LAW.
+		
+		7. No support &amp; maintenance.
+		Equo shall have no support or maintenance obligations with respect to the Software hereunder.
+		
+		8. Limitation of Remedies and Damages.
+		IN NO EVENT SHALL Equo BE LIABLE FOR ANY LOSS OF USE, LOST DATA, FAILURE OF SECURITY MECHANISMS, INTERRUPTION OF BUSINESS, OR ANY INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY KIND (INCLUDING LOST PROFITS), REGARDLESS OF THE FORM OF ACTION, WHETHER IN CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN IF INFORMED OF THE POSSIBILITY OF SUCH DAMAGES IN ADVANCE. NOTWITHSTANDING ANY OTHER PROVISION OF THIS AGREEMENT, Equo'S ENTIRE LIABILITY TO YOU UNDER THIS AGREEMENT SHALL NOT EXCEED THE GREATER OF (I) THE AMOUNT ACTUALLY PAID BY YOU TO Equo UNDER THIS AGREEMENT OR (II) $10,000. The parties agree that the limitations specified in this Section 9 will survive and apply even if any limited remedy specified in this Agreement is found to have failed of its essential purpose.
+		
+		9. Confidential Information.
+		Any software, documentation or technical information provided by Equo (or its agents) shall be deemed "Equo Confidential Information" without any marking or further designation. Except as expressly authorized herein, you will hold in confidence and not use or disclose any Equo Confidential Information. You acknowledge that disclosure of Equo Confidential Information would cause substantial harm to Equo that could not be remedied by the payment of damages alone and therefore that upon any such disclosure by you, Equo shall be entitled to appropriate equitable relief in addition to whatever remedies it might have at law.
+		
+		10. Export Compliance.
+		You acknowledge that the Software is subject to export restrictions by the United States government and import restrictions by certain foreign governments. You shall not, and shall not allow any third-party to, remove or export from the United States or allow the export or re-export of any part of the Software or any direct product thereof: (i) into (or to a national or resident of) any embargoed or terrorist-supporting country; (ii) to anyone on the U.S. Commerce Department's Table of Denial Orders or U.S. Treasury Department's list of Specially Designated Nationals; (iii) to any country to which such export or re-export is restricted or prohibited, or as to which the United States government or any agency thereof requires an export license or other governmental approval at the time of export or re-export without first obtaining such license or approval; or (iv) otherwise in violation of any export or import restrictions, laws or regulations of any United States or foreign agency or authority. You agree to the foregoing and warrant that you are not located in, under the control of, or a national or resident of any such prohibited country or on any such prohibited party list. The Software is further restricted from being used for the design or development of nuclear, chemical, or biological weapons or missile technology, or for terrorist activity, without the prior permission of the United States government.
+		
+		11. General.
+		11.1 Assignment.This Agreement will bind and inure to the benefit of each party's permitted successors and assigns. Equo may assign this Agreement to any affiliate or in connection with a merger, reorganization, acquisition or other transfer of all or substantially all of Equo's assets or voting securities. You may not assign or transfer this Agreement, in whole or in part, without Equo's written consent. Any attempt to transfer or assign this Agreement without such written consent will be null and void.
+		11.2 Severability. If any provision of this Agreement shall be adjudged by any court of competent jurisdiction to be unenforceable or invalid, that provision shall be limited to the minimum extent necessary so that this Agreement shall otherwise remain in effect.
+		11.3 Governing Law; Jurisdiction and Venue. This Agreement shall be governed by the laws of the State of California and the United States without regard to conflicts of laws provisions thereof, and without regard to the United Nations Convention on the International Sale of Goods. The jurisdiction and venue for actions related to the subject matter hereof shall be the California state and United States federal courts located in San Francisco, California, and both parties hereby submit to the personal jurisdiction of such courts.
+		11.4 Attorneys' Fees and Costs. The prevailing party in any action to enforce this Agreement will be entitled to recover its attorneys' fees and costs in connection with such action.
+		11.5 Notices and reports. Any notice or report hereunder shall be in writing. If to Equo, such notice or report shall be sent to Equo at the address above to the attention of "Legal Department". If to you, such notice or report shall be sent to the address you provided prior to downloading the Software. Notices and reports shall be deemed given: (i) upon receipt if by personal delivery; (ii) upon receipt if sent by certified or registered U.S. mail (return receipt requested); or (iii) one day after it is sent if by next day delivery by a major commercial delivery service.
+		11.6 Amendments; waivers. No supplement, modification, or amendment of this Agreement shall be binding, unless executed in writing by a duly authorized representative of each party to this Agreement. No waiver will be implied from conduct or failure to enforce or exercise rights under this Agreement, nor will any waiver be effective unless in a writing signed by a duly authorized representative on behalf of the party claimed to have waived.
+		11.7 Entire agreement. This Agreement is the complete and exclusive statement of the mutual understanding of the parties and supersedes and cancels all previous written and oral agreements and communications relating to the subject matter of this Agreement. No provision of any purchase order or in any other business form employed by you will supersede the terms and conditions of this Agreement, and any such document issued by a party hereto relating to this Agreement shall be for administrative purposes only and shall have no legal effect. Notwithstanding the foregoing, if you have entered into a separate written license agreement signed by Equo for use of the Software, the terms and conditions of such other agreement shall prevail over any conflicting terms or conditions in this Agreement.
+		11.8 Independent contractors. The parties to this Agreement are independent contractors. There is no relationship of partnership, joint venture, employment, franchise or agency created hereby between the parties. Neither party will have the power to bind the other or incur obligations on the other party's behalf without the other party's prior written consent.
+		11.9 Force majeure. Neither party shall be liable to the other for any delay or failure to perform any obligation under this Agreement (except for a failure to pay fees) if the delay or failure is due to unforeseen events, which occur after the signing of this Agreement and which are beyond the reasonable control of the parties, such as strikes, blockade, war, terrorism, riots, natural disasters, refusal of license by the government or other governmental agencies, in so far as such an event prevents or delays the affected party from fulfilling its obligations and such party is not able to prevent or remove the force majeure at reasonable cost.
+		11.10 Government end-users. The Software is commercial computer software. If the user or licensee of the Software is an agency, department, or other entity of the United States Government, the use, duplication, reproduction, release, modification, disclosure, or transfer of the Software, or any related documentation of any kind, including technical data and manuals, is restricted by a license agreement or by the terms of this Agreement in accordance with Federal Acquisition Regulation 12.212 for civilian purposes and Defense Federal Acquisition Regulation Supplement 227.7202 for military purposes. The Software was developed fully at private expense. All other use is prohibited.
+		11.11 Third party code. If designated in the Documentation, the Software may contain or be provided with certain third-party code (including code which may be made available to you in source code form). Ownership, use, warranty and modification rights with respect to any such designated code shall be as expressly set forth in the Documentation.
+		
+		BY CHECKING THE "I Agree" BOX OR INSTALLING OR USING ALL OR ANY PORTION OF THE SOFTWARE, YOU ARE ACCEPTING ALL OF THE TERMS AND CONDITIONS OF THIS AGREEMENT. YOU AGREE THAT THIS AGREEMENT IS ENFORCEABLE LIKE ANY WRITTEN NEGOTIATED AGREEMENT SIGNED BY YOU. IF YOU DO NOT AGREE TO ALL OF THESE TERMS AND CONDITIONS, CLICK "I Do Not Agree" OR DO NOT INSTALL NOR USE ALL OR ANY PORTION OF THE SOFTWARE. YOU WILL NOT BE GIVEN ACCESS TO THE SOFTWARE UNLESS YOU ACCEPT THE TERMS OF THIS AGREEMENT. IF YOU HAVE PAID A LICENSE FEE FOR USE OF THE SOFTWARE AND DO NOT AGREE TO THESE TERMS, YOU MAY RETURN THE SOFTWARE FOR A FULL REFUND PROVIDED YOU (A) DO NOT USE THE SOFTWARE AND (B) RETURN THE SOFTWARE WITHIN THIRTY (30) DAYS OF YOUR INITIAL PURCHASE. IF YOU WISH TO USE THE SOFTWARE AS AN EMPLOYEE, CONTRACTOR, OR AGENT OF A CORPORATION, PARTNERSHIP OR SIMILAR ENTITY, THEN YOU MUST BE AUTHORIZED TO SIGN FOR AND BIND THE ENTITY IN ORDER TO ACCEPT THE TERMS OF THIS AGREEMENT. THE LICENSES GRANTED UNDER THIS AGREEMENT ARE EXPRESSLY CONDITIONED UPON ACCEPTANCE BY SUCH AUTHORIZED PERSONNEL. IF YOU HAVE ENTERED INTO A SEPARATE WRITTEN LICENSE AGREEMENT WITH VENDOR FOR USE OF THE SOFTWARE, THE TERMS AND CONDITIONS OF SUCH OTHER AGREEMENT SHALL PREVAIL OVER ANY CONFLICTING TERMS OR CONDITIONS IN THIS AGREEMENT.
+   </license>
+
+   <plugin
+         id="com.equo.eclipse.monaco.editor"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.equo.server.provider"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.swt.chromium"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.swt.chromium.64b"
+         arch="x86_64"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.swt.chromium.32b"
+         arch="x86"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.swt.chromium.win32.win32.x86_64"
+         os="win32"
+         ws="win32"
+         arch="x86_64"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.swt.chromium.win32.win32.x86"
+         os="win32"
+         ws="win32"
+         arch="x86"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.swt.chromium.gtk.linux.x86_64"
+         os="linux"
+         ws="gtk"
+         arch="x86_64"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.swt.chromium.cocoa.macosx.x86_64"
+         os="macosx"
+         ws="cocoa"
+         arch="x86_64"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="com.make.chromium.cef.win32.win32.x86_64"
+         os="win32"
+         ws="win32"
+         arch="x86_64"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="com.make.chromium.cef.gtk.linux.x86_64"
+         os="linux"
+         ws="gtk"
+         arch="x86_64"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="com.make.chromium.cef.cocoa.macosx.x86_64"
+         os="macosx"
+         ws="cocoa"
+         arch="x86_64"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+</feature>
