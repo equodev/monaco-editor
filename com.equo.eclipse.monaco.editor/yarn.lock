@@ -24,9 +24,9 @@
     js-tokens "^4.0.0"
 
 "@equo/equo-monaco-editor@file:../com.equo.monaco/equo-monaco-editor":
-  version "0.1.5"
+  version "0.1.6"
   dependencies:
-    "@equo/websocket" "^0.1.4"
+    "@equo/websocket" "^0.1.5"
     monaco-editor "^0.23.0"
     monaco-languageclient "^0.13.1-next.9"
     normalize-url "^5.0.0"
@@ -39,10 +39,10 @@
   resolved "https://registry.dev.equoplatform.com/@equo%2fservice-manager/-/service-manager-0.1.0.tgz#72c3f574403dab6ea5426424078ba430c6bec158"
   integrity sha512-ZT+pqtqAk28Y4U8uwCcdkBzOz7YX/YPw9T+6WerGxW+ItvMk8adTLeYAOih8w9NBg5j6Zdb8MgXLWcK7LX8uOg==
 
-"@equo/websocket@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.dev.equoplatform.com/@equo%2fwebsocket/-/websocket-0.1.4.tgz#547b6746428876ca4764d89a9ccd90c5cee9bf61"
-  integrity sha512-OPhR3lpTU7uKP1DsMgRlVNNx7vAeZKYBJqWkTf2H/5hGLyhE3/8f3uQTYLC7U5xNP6UpbQDt31X0p6yWPOk70A==
+"@equo/websocket@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.dev.equoplatform.com/@equo%2fwebsocket/-/websocket-0.1.5.tgz#fc4dc6849a9070cb94fbe175f01ae8d74421a735"
+  integrity sha512-3QfMGkLYRvmXCF3Hym3yOzBs7bfEyZg61Ss7t0rJ+lK61J+j+hHlJTUhgfb0annv102QLLIRVK8XlCrMMiJovA==
   dependencies:
     "@equo/service-manager" "^0.1.0"
 
