@@ -2,7 +2,7 @@
 <feature
       id="com.equo.monaco.feature"
       label="Equo Editor"
-      version="0.2.8"
+      version="1.0.0"
       provider-name="Equo">
 
    <description url="https://www.equoplatform.com/">
