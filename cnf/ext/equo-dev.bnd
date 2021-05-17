@@ -1,7 +1,5 @@
 javac.debug:            on
 
--include: ${workspace}/gradle.properties
-
 -plugin.1.Eclipse201912: \
     aQute.bnd.repository.osgi.OSGiRepository; \
         name = "Eclipse201912"; \

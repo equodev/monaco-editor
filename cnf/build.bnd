@@ -1,38 +1,26 @@
 # WORKAROUND: Avoid include as it's broken. Content of this files is copy-pasted by now
-#-include: https://equo-framework.ams3.digitaloceanspaces.com/0.2.0/equobuild.bnd,https://testing-core.ams3.digitaloceanspaces.com/0.2.0/testbuild.bnd
+#-include: https://dl.equoplatform.com/framework/1.0.0/equobuild.bnd,https://dl.equoplatform.com/testing-core/1.0.0/testbuild.bnd
+
+-include: https://dl.equoplatform.com/framework/develop/framework.bnd
 
 -plugin.1.Equo: \
-    aQute.bnd.repository.p2.provider.P2Repository; \
+    aQute.bnd.repository.osgi.OSGiRepository; \
         name = Equo; \
-        url = "https://dl.maketechnology.io/framework/0.2.0/repo/"; \
+        locations = "https://dl.equoplatform.com/framework/${framework_version}/repo/index.xml.gz"; \
         poll.time = -1; \
         cache = ~/.bnd/cache/equo
 
--plugin.1.EquoExtras: \
-    aQute.bnd.repository.p2.provider.P2Repository; \
+-plugin.2.EquoExtras: \
+    aQute.bnd.repository.osgi.OSGiRepository; \
         name = EquoExtras; \
-        url = "https://equo-framework-extras.ams3.digitaloceanspaces.com/0.2.0/repo/"; \
+        locations = "https://dl.equoplatform.com/framework-extras/${framework_extras_version}/repo/index.xml.gz"; \
         poll.time = -1
 
--plugin.1.Testing: \
-    aQute.bnd.repository.p2.provider.P2Repository; \
-        name = "Equo Testing"; \
-        url = "https://testing-core.ams3.digitaloceanspaces.com/0.2.0/repo/"; \
-        poll.time = -1; \
-        cache = ~/.bnd/cache/equo-testing
+#-plugin.3.Release: \
+#    aQute.bnd.repository.p2.provider.P2Repository; \
+#        name = "Release"; \
+#        url = "https://dl.equoplatform.com/monaco-editor/${previous_version}/repo/"; \
+#        poll.time = -1
 
--plugin.1.Release: \
-    aQute.bnd.deployer.repository.LocalIndexedRepo; \
-        name = Release; \
-        local = ${build}/release; \
-        type = R5
-
--plugin.2.P2Plugins: \
-    aQute.bnd.repository.osgi.OSGiRepository; \
-        name = "P2Plugins"; \
-        locations = "http://www.maketechnology.io/p2plugins/index.xml.gz"; \
-        poll.time = -1; \
-        cache = ~/.bnd/cache/p2plugins
-
--releaserepo: Release
--baselinerepo: Release
+#-baseline: *
+#-baselinerepo: Release
