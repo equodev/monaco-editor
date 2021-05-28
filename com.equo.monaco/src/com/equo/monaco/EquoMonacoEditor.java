@@ -407,7 +407,7 @@ public class EquoMonacoEditor {
 	public void reload() {
 		String content = getFileContent();
 		if (content != null) {
-			equoEventHandler.send(namespace + "_doReload", content);
+			equoEventHandler.send(namespace + "_reload", content);
 		}
 	}
 

@@ -577,7 +577,7 @@ export class EquoMonacoEditor {
       this.filePathChangedCallback();
     });
 
-    this.webSocket.on(this.namespace + "_doReload", (content: string) => {
+    this.webSocket.on(this.namespace + "_reload", (content: string) => {
       let editor = this.editor;
       editor.executeEdits("", [
         {
