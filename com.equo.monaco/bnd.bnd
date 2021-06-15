@@ -9,7 +9,6 @@ Export-Package: \
 	com.equo.contribution.api;version=latest,\
 	com.equo.filesystem.api;version=latest,\
 	com.equo.ws.api;version=latest,\
-	com.equo.node.packages;version=latest,\
 	org.java-websocket.Java-WebSocket,\
 	org.java-websocket.Java-WebSocket.source,\
 	com.google.gson,\
