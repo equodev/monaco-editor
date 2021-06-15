@@ -39,7 +39,7 @@ public class MonacoEditorIntegrationTest {
 	private Display display;
 
 	@Rule
-	public EquoRule rule = new EquoRule(this).runInNonUIThread();
+	public EquoRule rule = new EquoRule(this).runInNonUiThread();
 
 	@Before
 	public void before() {

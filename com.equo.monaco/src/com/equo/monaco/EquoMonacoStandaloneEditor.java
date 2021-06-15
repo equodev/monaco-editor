@@ -8,85 +8,91 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import com.equo.filesystem.api.IEquoFileSystem;
+import com.equo.ws.api.IEquoEventHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.equo.filesystem.api.IEquoFileSystem;
-import com.equo.ws.api.IEquoEventHandler;
 
+/**
+ * Allows the editor to be created in a standalone way, just as a javascript
+ * component.
+ */
 @Component
 public class EquoMonacoStandaloneEditor {
 
-	private IEquoEventHandler equoEventHandler;
+  private IEquoEventHandler equoEventHandler;
 
-	@Reference
-	private IEquoFileSystem equoFileSystem;
+  @Reference
+  private IEquoFileSystem equoFileSystem;
 
-	public EquoMonacoStandaloneEditor() {
-		super();
-	}
+  public EquoMonacoStandaloneEditor() {
+    super();
+  }
 
-	@Activate
-	public void activate() {
-		attendEditorCreation();
-		attendLspConfig();
-	}
+  @Activate
+  public void activate() {
+    attendEditorCreation();
+    attendLspConfig();
+  }
 
-	private void attendLspConfig() {
-		equoEventHandler.on("_addLspServer", (JsonObject payload) -> {
-			List<String> executionParameters = getListFromJsonArray(payload.getAsJsonArray("executionParameters"));
-			List<String> extensions = getListFromJsonArray(payload.getAsJsonArray("extensions"));
-			EquoMonacoEditor.addLspServer(executionParameters, extensions);
-		});
+  private void attendLspConfig() {
+    equoEventHandler.on("_addLspServer", (JsonObject payload) -> {
+      List<String> executionParameters =
+          getListFromJsonArray(payload.getAsJsonArray("executionParameters"));
+      List<String> extensions = getListFromJsonArray(payload.getAsJsonArray("extensions"));
+      EquoMonacoEditor.addLspServer(executionParameters, extensions);
+    });
 
-		equoEventHandler.on("_addLspWsServer", (JsonObject payload) -> {
-			String fullServerPath = payload.get("fullServerPath").getAsString();
-			List<String> extensions = getListFromJsonArray(payload.getAsJsonArray("extensions"));
-			EquoMonacoEditor.addLspWsServer(fullServerPath, extensions);
-		});
+    equoEventHandler.on("_addLspWsServer", (JsonObject payload) -> {
+      String fullServerPath = payload.get("fullServerPath").getAsString();
+      List<String> extensions = getListFromJsonArray(payload.getAsJsonArray("extensions"));
+      EquoMonacoEditor.addLspWsServer(fullServerPath, extensions);
+    });
 
-		equoEventHandler.on("_removeLspServer", (JsonObject payload) -> {
-			List<String> extensions = getListFromJsonArray(payload.getAsJsonArray("extensions"));
-			EquoMonacoEditor.removeLspServer(extensions);
-		});
-	}
+    equoEventHandler.on("_removeLspServer", (JsonObject payload) -> {
+      List<String> extensions = getListFromJsonArray(payload.getAsJsonArray("extensions"));
+      EquoMonacoEditor.removeLspServer(extensions);
+    });
+  }
 
-	protected List<String> getListFromJsonArray(JsonArray array) {
-		List<String> list = new ArrayList<>();
-		for (JsonElement elem : array) {
-			list.add(elem.getAsString());
-		}
-		return list;
-	}
+  protected List<String> getListFromJsonArray(JsonArray array) {
+    List<String> list = new ArrayList<>();
+    for (JsonElement elem : array) {
+      list.add(elem.getAsString());
+    }
+    return list;
+  }
 
-	private void attendEditorCreation() {
-		equoEventHandler.on("_createEditor", (JsonObject payload) -> {
-			JsonElement jsonFilePath = payload.get("filePath");
-			if (jsonFilePath != null) {
-				String filePath = jsonFilePath.getAsString();
-				File file = new File(filePath);
-				String content = equoFileSystem.readFile(new File(filePath));
-				if (content != null) {
-					new EquoMonacoEditor(equoEventHandler, equoFileSystem).initialize(content, file.getName(),
-							filePath);
-				} else {
-					if (!file.exists()) {
-						new EquoMonacoEditor(equoEventHandler, equoFileSystem).initialize("", file.getName(), filePath);
-					}
-				}
-			} else {
-				new EquoMonacoEditor(equoEventHandler, equoFileSystem).initialize("", "", "");
-			}
-		});
-	}
+  private void attendEditorCreation() {
+    equoEventHandler.on("_createEditor", (JsonObject payload) -> {
+      JsonElement jsonFilePath = payload.get("filePath");
+      if (jsonFilePath != null) {
+        String filePath = jsonFilePath.getAsString();
+        File file = new File(filePath);
+        String content = equoFileSystem.readFile(new File(filePath));
+        if (content != null) {
+          new EquoMonacoEditor(equoEventHandler, equoFileSystem).initialize(content, file.getName(),
+              filePath);
+        } else {
+          if (!file.exists()) {
+            new EquoMonacoEditor(equoEventHandler, equoFileSystem).initialize("", file.getName(),
+                filePath);
+          }
+        }
+      } else {
+        new EquoMonacoEditor(equoEventHandler, equoFileSystem).initialize("", "", "");
+      }
+    });
+  }
 
-	@Reference
-	public void setEquoEventHandler(IEquoEventHandler handler) {
-		equoEventHandler = handler;
-	}
+  @Reference
+  public void setEquoEventHandler(IEquoEventHandler handler) {
+    equoEventHandler = handler;
+  }
 
-	public void unsetEquoEventHandler(IEquoEventHandler handler) {
-		equoEventHandler = null;
-	}
+  public void unsetEquoEventHandler(IEquoEventHandler handler) {
+    equoEventHandler = null;
+  }
 
 }
