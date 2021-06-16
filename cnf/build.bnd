@@ -1,7 +1,4 @@
-# WORKAROUND: Avoid include as it's broken. Content of this files is copy-pasted by now
-#-include: https://dl.equoplatform.com/framework/1.0.0/equobuild.bnd,https://dl.equoplatform.com/testing-core/1.0.0/testbuild.bnd
-
--include: https://dl.equoplatform.com/framework/develop/framework.bnd
+-include: https://dl.equoplatform.com/framework/1.0.0/framework.bnd
 
 -plugin.1.Equo: \
     aQute.bnd.repository.osgi.OSGiRepository; \

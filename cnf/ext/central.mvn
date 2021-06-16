@@ -1,2 +1,5 @@
 org.jacoco:org.jacoco.agent:jar:runtime:0.8.6
 com.google.guava:guava:21.0
+
+org.hamcrest:hamcrest:2.2
+org.osgi:osgi.cmpn:6.0.0
