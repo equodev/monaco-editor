@@ -1,0 +1,4 @@
+-runbundles.equomonaco: \
+    com.equo.monaco,\
+    org.eclipse.jface.text,\
+    org.eclipse.text
