@@ -1,0 +1,9 @@
+-plugin.1.EquoMonaco: \
+    aQute.bnd.repository.osgi.OSGiRepository; \
+        name = "Equo Monaco Editor"; \
+        locations = "https://dl.equoplatform.com/monaco-editor/VERSIONPLACEHOLDER/repo/index.xml.gz"
+
+-plugin.1.EquoMonacoExt: \
+    aQute.bnd.repository.osgi.OSGiRepository; \
+        name = "Equo Monaco Editor Ext"; \
+        locations = "https://dl.equoplatform.com/monaco-editor-ext/VERSIONPLACEHOLDER/repo/index.xml.gz"
