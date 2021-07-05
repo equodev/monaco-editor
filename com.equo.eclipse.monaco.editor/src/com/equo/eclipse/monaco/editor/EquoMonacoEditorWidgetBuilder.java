@@ -45,12 +45,12 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 
+import com.equo.comm.api.IEquoCommService;
+import com.equo.comm.api.IEquoEventHandler;
 import com.equo.filesystem.api.IEquoFileSystem;
 import com.equo.monaco.AbstractEquoMonacoEditorBuilder;
 import com.equo.monaco.EquoMonacoEditor;
 import com.equo.monaco.lsp.LspProxy;
-import com.equo.ws.api.IEquoEventHandler;
-import com.equo.ws.api.IEquoWebSocketService;
 import com.google.gson.JsonObject;
 
 /**
@@ -66,7 +66,7 @@ public class EquoMonacoEditorWidgetBuilder extends AbstractEquoMonacoEditorBuild
   private IEquoFileSystem equoFileSystem;
 
   @Reference(cardinality = ReferenceCardinality.MANDATORY, policy = ReferencePolicy.STATIC)
-  private IEquoWebSocketService websocketService;
+  private IEquoCommService commService;
 
   private Composite parent;
   private int style;
@@ -123,7 +123,7 @@ public class EquoMonacoEditorWidgetBuilder extends AbstractEquoMonacoEditorBuild
       style = parent.getStyle();
     }
     EquoMonacoEditor editor = new EquoMonacoEditor(parent, style, equoEventHandler,
-        websocketService, equoFileSystem, EQUO_MONACO_CONTRIBUTION_NAME);
+        commService, equoFileSystem, EQUO_MONACO_CONTRIBUTION_NAME);
     editor.setRootPath(rootPath);
     createEditor(editor, contents, filePath, lsp);
     return editor;

@@ -23,13 +23,13 @@
 // @ts-ignore
 import { EquoMonaco } from '@equo/equo-monaco-editor';
 // @ts-ignore
-import { EquoWebSocketService, EquoWebSocket } from '@equo/websocket';
+import { EquoCommService, EquoComm } from '@equo/comm';
 
-var websocket: EquoWebSocket = EquoWebSocketService.get();
+var comm: EquoComm = EquoCommService.get();
 
-websocket.on('_getIsEditorCreated', () => {
+comm.on('_getIsEditorCreated', () => {
     if (document.getElementsByClassName('monaco-editor').length > 0) {
-        websocket.send('_doGetIsEditorCreated', {
+        comm.send('_doGetIsEditorCreated', {
             created: true
         });
     }

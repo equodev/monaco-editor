@@ -41,9 +41,9 @@ import org.junit.Test;
 
 import com.equo.server.api.IEquoServer;
 import com.equo.testing.common.util.EquoRule;
-import com.equo.ws.api.IEquoEventHandler;
-import com.equo.ws.api.IEquoWebSocketService;
-import com.equo.ws.api.JsonPayloadEquoRunnable;
+import com.equo.comm.api.IEquoEventHandler;
+import com.equo.comm.api.IEquoWebCommService;
+import com.equo.comm.api.JsonPayloadEquoRunnable;
 
 public class MonacoEditorIntegrationTest {
 
@@ -51,7 +51,7 @@ public class MonacoEditorIntegrationTest {
 	protected IEquoServer equoServer;
 
 	@Inject
-	protected IEquoWebSocketService websocketService;
+	protected IEquoCommService commService;
 
 	@Inject
 	protected IEquoEventHandler handler;
@@ -78,7 +78,7 @@ public class MonacoEditorIntegrationTest {
 			data.grabExcessHorizontalSpace = true;
 			data.grabExcessVerticalSpace = true;
 			chromium.setLayoutData(data);
-			chromium.setUrl("http://testbundles/" + String.format("?equowsport=%d", websocketService.getPort()));
+			chromium.setUrl("http://testbundles/" + String.format("?equocommport=%d", commService.getPort()));
 			shell.open();
 		});
 	}

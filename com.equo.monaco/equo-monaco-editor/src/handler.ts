@@ -31,7 +31,7 @@ import {
 const normalizeUrl = require("normalize-url");
 const ReconnectingWebSocket = require("reconnecting-websocket");
 import * as monaco from "monaco-editor";
-import { EquoWebSocketService, EquoWebSocket } from "@equo/websocket";
+import { EquoCommService, EquoComm } from "@equo/comm";
 // @ts-ignore
 import { StandaloneCodeEditorServiceImpl } from "monaco-editor/esm/vs/editor/standalone/browser/standaloneCodeServiceImpl.js";
 // @ts-ignore
@@ -43,7 +43,7 @@ export class EquoMonacoEditor {
   private model!: monaco.editor.ITextModel;
   private namespace!: string;
   private wasCreated: boolean = false;
-  private webSocket: EquoWebSocket;
+  private comm: EquoComm;
   private languageClient!: MonacoLanguageClient;
   private lspws!: WebSocket;
   private filePath!: string;
@@ -58,8 +58,8 @@ export class EquoMonacoEditor {
    * @name EquoMonacoEditor
    * @class
    */
-  constructor(websocket: EquoWebSocket) {
-    this.webSocket = websocket;
+  constructor(comm: EquoComm) {
+    this.comm = comm;
     this.elemdiv = document.createElement("div");
     this.elemdiv.addEventListener("click", (e: Event) => this.reload());
     this.elemdiv.style.background = "#DD944F";
@@ -104,28 +104,28 @@ export class EquoMonacoEditor {
     if (this.languageClient) this.languageClient.stop();
     this.model.dispose();
     this.editor.dispose();
-    this.webSocket.send(this.namespace + "_disposeEditor");
+    this.comm.send(this.namespace + "_disposeEditor");
   }
   /**
    * Saves the file content in custom path.
    * @returns {void}
    */
   public saveAs(): void {
-    this.webSocket.send(this.namespace + "_doSaveAs");
+    this.comm.send(this.namespace + "_doSaveAs");
   }
   /**
    * Saves the file content in default path.
    * @returns {void}
    */
   public save(): void {
-    this.webSocket.send(this.namespace + "_doSave");
+    this.comm.send(this.namespace + "_doSave");
   }
   /**
    * Reloads the document content.
    * @returns {void}
    */
   public reload(): void {
-    this.webSocket.send(this.namespace + "_doReload");
+    this.comm.send(this.namespace + "_doReload");
   }
   /**
    * @callback listenerCallback
@@ -234,7 +234,7 @@ export class EquoMonacoEditor {
 
   private generateTextModelService(language: string): any {
     let self = this;
-    let ws = this.webSocket;
+    let comm = this.comm;
     let getModel = function (resource: monaco.Uri, modelContent: string) {
       var model = null;
       if (resource !== null) model = monaco.editor.getModel(resource);
@@ -268,7 +268,7 @@ export class EquoMonacoEditor {
               dispose() {},
             });
           } else {
-            ws.on(
+            comm.on(
               self.namespace + "_modelResolved" + uri.fsPath,
               (content: string) => {
                 let previewModel = getModel(uri, content);
@@ -296,7 +296,7 @@ export class EquoMonacoEditor {
                 self.editor.layout({ height: height, width: width });
               }
             );
-            ws.send(self.namespace + "_getContentOf", { path: uri.fsPath });
+            comm.send(self.namespace + "_getContentOf", { path: uri.fsPath });
           }
         });
       },
@@ -305,7 +305,7 @@ export class EquoMonacoEditor {
   }
 
   private editorTweaks(bindEclipseLsp: boolean): void {
-    let ws = this.webSocket;
+    let comm = this.comm;
     let namespace = this.namespace;
 
     this.editor.addAction({
@@ -326,7 +326,7 @@ export class EquoMonacoEditor {
       contextMenuGroupId: "navigation",
       contextMenuOrder: 1.0,
       run: function (editor: monaco.editor.IStandaloneCodeEditor): void {
-        ws.send(namespace + "_doReload");
+        comm.send(namespace + "_doReload");
       },
     });
     if (bindEclipseLsp) {
@@ -340,7 +340,7 @@ export class EquoMonacoEditor {
         contextMenuGroupId: "navigation",
         contextMenuOrder: 6.0,
         run: function (editor: monaco.editor.IStandaloneCodeEditor): void {
-          ws.send(namespace + "_findAllReferences");
+          comm.send(namespace + "_findAllReferences");
         },
       });
     }
@@ -349,14 +349,14 @@ export class EquoMonacoEditor {
       editor: any,
       input: any
     ) {
-      ws.send("_openCodeEditor", {
+      comm.send("_openCodeEditor", {
         path: input.resource.path,
         selection: input.options.selection,
       });
       return null;
     };
     RenameAction.prototype.runCommand = function (accessor: any, args: any) {
-      ws.send(namespace + "_makeRename");
+      comm.send(namespace + "_makeRename");
       return null;
     };
   }
@@ -366,7 +366,7 @@ export class EquoMonacoEditor {
    * @param {string} [filePath] - Optional
    */
   public create(element: HTMLElement, filePath?: string): void {
-    this.webSocket.on(
+    this.comm.on(
       "_doCreateEditor",
       (values: {
         text: string;
@@ -418,7 +418,7 @@ export class EquoMonacoEditor {
     );
 
     if (filePath) this.filePath = filePath;
-    this.webSocket.send("_createEditor", { filePath: filePath });
+    this.comm.send("_createEditor", { filePath: filePath });
   }
   /**
    * Gets the document state.
@@ -504,13 +504,13 @@ export class EquoMonacoEditor {
         column: selection.endColumn,
       });
       let length = offsetEnd - offsetStart;
-      this.webSocket.send(this.namespace + "_selection", {
+      this.comm.send(this.namespace + "_selection", {
         offset: offsetStart,
         length: length,
       });
     });
 
-    this.webSocket.on(
+    this.comm.on(
       this.namespace + "_doReinitialization",
       (values: {
         text: string;
@@ -540,7 +540,7 @@ export class EquoMonacoEditor {
       }
     );
 
-    this.webSocket.on(
+    this.comm.on(
       this.namespace + "_filePathChanged",
       (values: { path: string; name: string }) => {
         this.filePath = values.path;
@@ -550,56 +550,56 @@ export class EquoMonacoEditor {
       }
     );
 
-    this.webSocket.on(this.namespace + "_doFind", () => {
+    this.comm.on(this.namespace + "_doFind", () => {
       this.editor.focus();
       this.editor.getAction("actions.find").run();
     });
 
-    this.webSocket.on(this.namespace + "_getContents", () => {
-      this.webSocket.send(this.namespace + "_doGetContents", {
+    this.comm.on(this.namespace + "_getContents", () => {
+      this.comm.send(this.namespace + "_doGetContents", {
         contents: this.editor.getValue(),
       });
     });
 
-    this.webSocket.on(this.namespace + "_undo", () => {
+    this.comm.on(this.namespace + "_undo", () => {
       (this.model as any).undo();
     });
 
-    this.webSocket.on(this.namespace + "_redo", () => {
+    this.comm.on(this.namespace + "_redo", () => {
       (this.model as any).redo();
     });
 
-    this.webSocket.on(this.namespace + "_didSave", () => {
+    this.comm.on(this.namespace + "_didSave", () => {
       this.clearDirtyState();
       this.notifyChanges();
     });
 
-    this.webSocket.on(this.namespace + "_subscribeModelChanges", () => {
+    this.comm.on(this.namespace + "_subscribeModelChanges", () => {
       this.sendChangesToJavaSide = true;
     });
 
-    this.webSocket.on(this.namespace + "_doCopy", () => {
+    this.comm.on(this.namespace + "_doCopy", () => {
       document.execCommand("copy");
     });
 
-    this.webSocket.on(this.namespace + "_doCut", () => {
+    this.comm.on(this.namespace + "_doCut", () => {
       document.execCommand("cut");
     });
 
-    this.webSocket.on(this.namespace + "_doPaste", () => {
+    this.comm.on(this.namespace + "_doPaste", () => {
       document.execCommand("paste");
     });
 
-    this.webSocket.on(this.namespace + "_doSelectAll", () => {
+    this.comm.on(this.namespace + "_doSelectAll", () => {
       const range = this.editor.getModel()!.getFullModelRange();
       this.editor.setSelection(range);
     });
 
-    this.webSocket.on(this.namespace + "_reportChanges", () => {
+    this.comm.on(this.namespace + "_reportChanges", () => {
       this.filePathChangedCallback();
     });
 
-    this.webSocket.on(this.namespace + "_reload", (content: string) => {
+    this.comm.on(this.namespace + "_reload", (content: string) => {
       let editor = this.editor;
       editor.executeEdits("", [
         {
@@ -612,7 +612,7 @@ export class EquoMonacoEditor {
       this.notifyChanges();
     });
 
-    this.webSocket.on(
+    this.comm.on(
       this.namespace + "_setContent",
       (values: { content: string; asEdit: boolean }) => {
         let editor = this.editor;
@@ -634,7 +634,7 @@ export class EquoMonacoEditor {
       }
     );
 
-    this.webSocket.on(
+    this.comm.on(
       this.namespace + "_selectAndReveal",
       (values: { offset: number; length: number }) => {
         let position = this.model.getPositionAt(values.offset);
@@ -656,7 +656,7 @@ export class EquoMonacoEditor {
 
   private notifyChanges(): void {
     if (this.sendChangesToJavaSide) {
-      this.webSocket.send(this.namespace + "_changesNotification", {
+      this.comm.send(this.namespace + "_changesNotification", {
         isDirty:
           this.lastSavedVersionId !== this.model.getAlternativeVersionId(),
         canRedo: (this.model as any).canRedo(),
@@ -674,7 +674,7 @@ It brings the beauty and the capabilities of a modern editor into Eclipse.
  *
  */
 export namespace EquoMonaco {
-  var websocket: EquoWebSocket = EquoWebSocketService.get();
+  var comm: EquoComm = EquoCommService.get();
   /**
    * Creates a new editor under DOM element.
    * @function
@@ -687,7 +687,7 @@ export namespace EquoMonaco {
     element: HTMLElement,
     filePath?: string
   ): EquoMonacoEditor {
-    let monacoEditor = new EquoMonacoEditor(websocket);
+    let monacoEditor = new EquoMonacoEditor(comm);
     monacoEditor.create(element, filePath);
     return monacoEditor;
   }
@@ -703,7 +703,7 @@ export namespace EquoMonaco {
     executionParameters: Array<string>,
     extensions: Array<string>
   ): void {
-    websocket.send("_addLspServer", {
+    comm.send("_addLspServer", {
       executionParameters: executionParameters,
       extensions: extensions,
     });
@@ -716,10 +716,10 @@ export namespace EquoMonaco {
    * @returns {void}
    */
   export function removeLspServer(extensions: Array<string>): void {
-    websocket.send("_removeLspServer", { extensions: extensions });
+    comm.send("_removeLspServer", { extensions: extensions });
   }
   /**
-   * Adds a lsp websocket server to be used by the editors on the files with the given extensions.
+   * Adds a lsp comm server to be used by the editors on the files with the given extensions.
    * @function
    * @name addLspWsServer
    * @param {string} fullServerPath - The full path to the lsp server. Example: ws://127.0.0.1:3000/lspServer.
@@ -730,7 +730,7 @@ export namespace EquoMonaco {
     fullServerPath: string,
     extensions: Array<string>
   ): void {
-    websocket.send("_addLspWsServer", {
+    comm.send("_addLspWsServer", {
       fullServerPath: fullServerPath,
       extensions: extensions,
     });

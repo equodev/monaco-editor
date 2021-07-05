@@ -44,14 +44,14 @@ import org.eclipse.swt.chromium.Browser;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
+import com.equo.comm.api.IEquoCommService;
+import com.equo.comm.api.IEquoEventHandler;
+import com.equo.comm.api.IEquoRunnable;
 import com.equo.filesystem.api.IEquoFileSystem;
 import com.equo.logging.client.api.Logger;
 import com.equo.logging.client.api.LoggerFactory;
 import com.equo.monaco.lsp.CommonLspProxy;
 import com.equo.monaco.lsp.LspProxy;
-import com.equo.ws.api.IEquoEventHandler;
-import com.equo.ws.api.IEquoRunnable;
-import com.equo.ws.api.IEquoWebSocketService;
 import com.google.gson.JsonObject;
 
 /**
@@ -106,11 +106,11 @@ public class EquoMonacoEditor {
    * the editor inside the given Composite.
    */
   public EquoMonacoEditor(Composite parent, int style, IEquoEventHandler handler,
-      IEquoWebSocketService websocketService, IEquoFileSystem equoFileSystem, String editorUrl) {
+      IEquoCommService commService, IEquoFileSystem equoFileSystem, String editorUrl) {
     this(handler, equoFileSystem);
     browser = new Browser(parent, style);
-    String wsPort = String.format("&equowsport=%s", String.valueOf(websocketService.getPort()));
-    browser.setUrl("http://" + editorUrl + "?namespace=" + namespace + wsPort);
+    String commPort = String.format("&equocommport=%s", String.valueOf(commService.getPort()));
+    browser.setUrl("http://" + editorUrl + "?namespace=" + namespace + commPort);
   }
 
   /**

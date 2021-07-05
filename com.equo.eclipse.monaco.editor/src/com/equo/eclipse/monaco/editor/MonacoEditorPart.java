@@ -88,7 +88,7 @@ import com.equo.eclipse.monaco.lsp.EclipseLspProxy;
 import com.equo.monaco.EquoMonacoEditor;
 import com.equo.monaco.lsp.LspProxy;
 import com.equo.server.api.IEquoServer;
-import com.equo.ws.api.IEquoRunnable;
+import com.equo.comm.api.IEquoRunnable;
 
 /**
  * An editor part that contains the Equo Editor inside. It intermediates between

@@ -1,6 +1,6 @@
 {
   "name": "@equo/equo-monaco-editor",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Monaco Editor for Eclipse",
   "license": "UNLICENSED",
   "publishConfig": {
@@ -12,7 +12,7 @@
     "/lib"
   ],
   "dependencies": {
-    "@equo/websocket": "^0.1.5",
+    "@equo/comm": "^0.1.5",
     "monaco-editor": "^0.23.0",
     "monaco-languageclient": "^0.13.1-next.9",
     "normalize-url": "^5.0.0",
