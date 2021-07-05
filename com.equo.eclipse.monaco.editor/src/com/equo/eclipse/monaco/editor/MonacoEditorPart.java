@@ -84,11 +84,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.equo.comm.api.IEquoRunnable;
 import com.equo.eclipse.monaco.lsp.EclipseLspProxy;
 import com.equo.monaco.EquoMonacoEditor;
 import com.equo.monaco.lsp.LspProxy;
 import com.equo.server.api.IEquoServer;
-import com.equo.comm.api.IEquoRunnable;
 
 /**
  * An editor part that contains the Equo Editor inside. It intermediates between

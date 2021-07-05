@@ -42,7 +42,7 @@ import org.junit.Test;
 import com.equo.server.api.IEquoServer;
 import com.equo.testing.common.util.EquoRule;
 import com.equo.comm.api.IEquoEventHandler;
-import com.equo.comm.api.IEquoWebCommService;
+import com.equo.comm.api.IEquoCommService;
 import com.equo.comm.api.JsonPayloadEquoRunnable;
 
 public class MonacoEditorIntegrationTest {
