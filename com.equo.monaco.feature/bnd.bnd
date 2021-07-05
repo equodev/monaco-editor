@@ -17,7 +17,7 @@ Bundle-Version: 1.0.0.${tstamp}
 	com.equo.server.api;version=snapshot,\
 	com.equo.server.offline.api;version=snapshot,\
 	com.equo.server.provider;version=snapshot,\
-	com.equo.ws.api;version=snapshot,\
+	com.equo.comm.api;version=snapshot,\
 	com.equo.ws.provider;version=snapshot,\
 	io.netty.all;version='[4.0.44,4.0.45)',\
 	javax.inject;version='[1.0.0,1.0.1)',\

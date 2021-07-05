@@ -17,7 +17,7 @@ Private-Package: \
     com.equo.monaco;version=latest,\
     com.equo.server.api;version=latest,\
     com.equo.testing.common;version=latest,\
-    com.equo.ws.api;version=latest,\
+    com.equo.comm.api;version=latest,\
     org.eclipse.e4.ui.model.workbench,\
     org.eclipse.e4.ui.workbench.renderers.swt,\
     org.eclipse.e4.ui.workbench,\
@@ -47,7 +47,7 @@ fragment.and.cocoa:${if;${matches;${tolower;${os.name}};.*mac.*};${cef.fragment}
 	bnd.identity;id='com.equo.server.provider',\
 	bnd.identity;id='javax.xml.bind',\
 	bnd.identity;id='javax.annotation',\
-	bnd.identity;id='com.equo.ws.api',\
+	bnd.identity;id='com.equo.comm.api',\
 	bnd.identity;id='com.equo.server.api',\
 	bnd.identity;id='com.equo.server.offline.api',\
 	bnd.identity;id='com.equo.contribution.provider',\
@@ -80,7 +80,7 @@ fragment.and.cocoa:${if;${matches;${tolower;${os.name}};.*mac.*};${cef.fragment}
 	com.equo.server.provider,\
 	com.equo.testing.common,\
 	com.equo.testing.common.internal;version=latest,\
-	com.equo.ws.api,\
+	com.equo.comm.api,\
 	com.equo.ws.provider,\
 	io.netty.all;version='[4.0.44,4.0.45)',\
 	javax.activation;version='[1.1.0,1.1.1)',\
