@@ -33,7 +33,7 @@ Export-Package: com.equo.eclipse.monaco.editor
 	com.equo.contribution.api;version=latest,\
 	com.equo.monaco;version=latest,\
 	com.equo.filesystem.api;version=latest,\
-	com.equo.ws.api;version=latest,\
+	com.equo.comm.api;version=latest,\
 	org.eclipse.swt.chromium,\
 	org.eclipse.swt.chromium.gtk.linux.x86_64,\
 	org.eclipse.swt.chromium.cocoa.macosx.x86_64,\
