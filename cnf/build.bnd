@@ -1,22 +1,22 @@
--include: https://dl.equoplatform.com/framework/1.0.0/framework.bnd
+-include: https://dl.dev.equoplatform.com/framework/1.0.0/framework.bnd
 
 -plugin.1.Equo: \
     aQute.bnd.repository.osgi.OSGiRepository; \
         name = Equo; \
-        locations = "https://dl.equoplatform.com/framework/${framework_version}/repo/index.xml.gz"; \
+        locations = "https://dl.dev.equoplatform.com/framework/${framework_version}/repo/index.xml.gz"; \
         poll.time = -1; \
         cache = ~/.bnd/cache/equo
 
 -plugin.2.EquoExtras: \
     aQute.bnd.repository.osgi.OSGiRepository; \
         name = EquoExtras; \
-        locations = "https://dl.equoplatform.com/framework-extras/${framework_extras_version}/repo/index.xml.gz"; \
+        locations = "https://dl.dev.equoplatform.com/framework-extras/${framework_extras_version}/repo/index.xml.gz"; \
         poll.time = -1
 
 #-plugin.3.Release: \
 #    aQute.bnd.repository.p2.provider.P2Repository; \
 #        name = "Release"; \
-#        url = "https://dl.equoplatform.com/monaco-editor/${previous_version}/repo/"; \
+#        url = "https://dl.dev.equoplatform.com/monaco-editor/${previous_version}/repo/"; \
 #        poll.time = -1
 
 #-baseline: *
