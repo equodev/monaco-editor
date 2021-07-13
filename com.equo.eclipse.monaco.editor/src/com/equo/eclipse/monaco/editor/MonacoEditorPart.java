@@ -296,7 +296,6 @@ public class MonacoEditorPart extends AbstractTextEditor {
 
   @Override
   public void createPartControl(Composite parent) {
-    System.setProperty("swt.chromium.debug", "true");
     IEditorInput input = getEditorInput();
     setSourceViewer();
     if (input instanceof FileEditorInput) {

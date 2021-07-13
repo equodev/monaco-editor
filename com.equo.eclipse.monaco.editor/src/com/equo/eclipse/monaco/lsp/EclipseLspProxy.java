@@ -57,6 +57,10 @@ public class EclipseLspProxy extends LspProxy {
       Field field = lspServer.getClass().getDeclaredField("lspStreamProvider");
       field.setAccessible(true);
       this.streamConnectionProvider = (StreamConnectionProvider) field.get(lspServer);
+      if (this.streamConnectionProvider == null) {
+        Thread.sleep(500);
+        this.streamConnectionProvider = (StreamConnectionProvider) field.get(lspServer);
+      }
     } catch (Exception e) {
       logger.error("Error obtaining LSP stream provider", e);
     }
