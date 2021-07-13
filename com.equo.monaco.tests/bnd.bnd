@@ -3,8 +3,8 @@ Private-Package: \
 	com.equo.monaco.tests,\
 	com.equo.monaco.tests.util
 
--include: https://dl.dev.equoplatform.com/testing-core/${testing_core_version}/testbundle.bnd,\
-    https://dl.dev.equoplatform.com/testing-core/${testing_core_version}/testbundlecoverage.bnd
+-include: https://dl.equoplatform.com/testing-core/${testing_core_version}/testbundle.bnd,\
+    https://dl.equoplatform.com/testing-core/${testing_core_version}/testbundlecoverage.bnd
 
 -includeresource: \
     resources/
