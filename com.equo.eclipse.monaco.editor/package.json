@@ -4,9 +4,15 @@
     "equo-monaco-editor-bundle"
   ],
   "dependencies": {
-    "lerna": "^3.20.2"
+    "glob-parent": "^6.0.0",
+    "lerna": "^3.20.2",
+    "trim-newlines": "^4.0.2"
   },
   "scripts": {
     "prepare": "lerna run prepare"
+  },
+  "resolutions": {
+    "glob-parent": "^6.0.0",
+    "trim-newlines": "^4.0.2"
   }
 }
