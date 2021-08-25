@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
+import java.util.function.Consumer;
 
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.swt.chromium.Browser;
@@ -46,7 +47,6 @@ import org.eclipse.swt.widgets.Display;
 
 import com.equo.comm.api.IEquoCommService;
 import com.equo.comm.api.IEquoEventHandler;
-import com.equo.comm.api.IEquoRunnable;
 import com.equo.filesystem.api.IEquoFileSystem;
 import com.equo.logging.client.api.Logger;
 import com.equo.logging.client.api.LoggerFactory;
@@ -72,7 +72,7 @@ public class EquoMonacoEditor {
 
   private Browser browser;
   private String namespace;
-  private List<IEquoRunnable<Void>> onLoadListeners;
+  private List<Consumer<Void>> onLoadListeners;
   protected String filePath = "";
   private boolean dispose = false;
   private String fileName = "";
@@ -120,20 +120,28 @@ public class EquoMonacoEditor {
     this.equoEventHandler = handler;
     this.equoFileSystem = equoFileSystem;
     namespace = "editor" + Double.toHexString(Math.random());
-    onLoadListeners = new ArrayList<IEquoRunnable<Void>>();
+    onLoadListeners = new ArrayList<Consumer<Void>>();
     loaded = false;
     registerActions();
   }
 
   private void registerActions() {
-    equoEventHandler.on(namespace + "_disposeEditor", (IEquoRunnable<Void>) runnable -> dispose());
-    equoEventHandler.on(namespace + "_doSaveAs", (IEquoRunnable<Void>) runnable -> saveAs());
-    equoEventHandler.on(namespace + "_doSave", (IEquoRunnable<Void>) runnable -> save());
-    equoEventHandler.on(namespace + "_doReload", (IEquoRunnable<Void>) runnable -> reload());
+    equoEventHandler.on(namespace + "_disposeEditor", Void.class, runnable -> {
+      dispose();
+    });
+    equoEventHandler.on(namespace + "_doSaveAs", Void.class, runnable -> {
+      saveAs();
+    });
+    equoEventHandler.on(namespace + "_doSave", Void.class, runnable -> {
+      save();
+    });
+    equoEventHandler.on(namespace + "_doReload", Void.class, runnable -> {
+      reload();
+    });
   }
 
-  public void configRename(IEquoRunnable<Void> runnable) {
-    equoEventHandler.on(namespace + "_makeRename", runnable);
+  public void configRename(Consumer<Void> runnable) {
+    equoEventHandler.on(namespace + "_makeRename", Void.class, runnable);
   }
 
   /**
@@ -156,9 +164,9 @@ public class EquoMonacoEditor {
   /**
    * Sets a runnable to be executed when the editor asks for file content.
    */
-  public void configGetModel(IEquoRunnable<String> runnable) {
-    equoEventHandler.on(namespace + "_getContentOf", (JsonObject changes) -> {
-      runnable.run(changes.get("path").getAsString());
+  public void configGetModel(Consumer<String> runnable) {
+    equoEventHandler.on(namespace + "_getContentOf", JsonObject.class, changes -> {
+      runnable.accept(changes.get("path").getAsString());
     });
   }
 
@@ -226,8 +234,9 @@ public class EquoMonacoEditor {
       lspPathAux = "ws://127.0.0.1:" + lsp.getPort();
     }
     final String lspPath = lspPathAux;
-    equoEventHandler.on("_createEditor",
-        (JsonObject payload) -> handleCreateEditor(content, lspPath, thereIsLS));
+    equoEventHandler.on("_createEditor", JsonObject.class, payload -> {
+      handleCreateEditor(content, lspPath, thereIsLS);
+    });
   }
 
   protected String getLspServerForFile(String fileName) {
@@ -264,18 +273,18 @@ public class EquoMonacoEditor {
     }
     equoEventHandler.send("_doCreateEditor", editorData);
     loaded = true;
-    for (IEquoRunnable<Void> onLoadListener : onLoadListeners) {
-      onLoadListener.run(null);
+    for (Consumer<Void> onLoadListener : onLoadListeners) {
+      onLoadListener.accept(null);
     }
     onLoadListeners.clear();
 
   }
 
-  protected void addOnLoadListener(IEquoRunnable<Void> listener) {
+  protected void addOnLoadListener(Consumer<Void> listener) {
     if (!loaded) {
       onLoadListeners.add(listener);
     } else {
-      listener.run(null);
+      listener.accept(null);
     }
   }
 
@@ -289,7 +298,7 @@ public class EquoMonacoEditor {
     }
     String[] result = { null };
     if (lock.tryAcquire()) {
-      equoEventHandler.on(namespace + "_doGetContents", (JsonObject contents) -> {
+      equoEventHandler.on(namespace + "_doGetContents", JsonObject.class, contents -> {
         try {
           result[0] = contents.get("contents").getAsString();
         } finally {
@@ -317,9 +326,9 @@ public class EquoMonacoEditor {
    * @param runnable will be runned with the editor content passed by parameter
    *                 once obtained.
    */
-  public void getContentsAsync(IEquoRunnable<String> runnable) {
-    equoEventHandler.on(namespace + "_doGetContents", (JsonObject contents) -> {
-      runnable.run(contents.get("contents").getAsString());
+  public void getContentsAsync(Consumer<String> runnable) {
+    equoEventHandler.on(namespace + "_doGetContents", JsonObject.class, contents -> {
+      runnable.accept(contents.get("contents").getAsString());
     });
     equoEventHandler.send(namespace + "_getContents");
   }
@@ -496,7 +505,8 @@ public class EquoMonacoEditor {
   }
 
   /**
-   * Makes a selection from the given {@code offset} until {@code offset + length}.
+   * Makes a selection from the given {@code offset} until
+   * {@code offset + length}.
    */
   public void selectAndReveal(int offset, int length) {
     Map<String, Integer> data = new HashMap<>();
@@ -505,7 +515,7 @@ public class EquoMonacoEditor {
     if (loaded) {
       equoEventHandler.send(namespace + "_selectAndReveal", data);
     } else {
-      addOnLoadListener((IEquoRunnable<Void>) runnable -> {
+      addOnLoadListener(runnable -> {
         equoEventHandler.send(namespace + "_selectAndReveal", data);
       });
     }
@@ -516,35 +526,34 @@ public class EquoMonacoEditor {
    * @param selectionFunction runnable to be runned with the new selection passed
    *                          by parameter.
    */
-  public void configSelection(IEquoRunnable<TextSelection> selectionFunction) {
-    equoEventHandler.on(namespace + "_selection", (JsonObject contents) -> {
+  public void configSelection(Consumer<TextSelection> selectionFunction) {
+    equoEventHandler.on(namespace + "_selection", JsonObject.class, contents -> {
       TextSelection textSelection =
           new TextSelection(contents.get("offset").getAsInt(), contents.get("length").getAsInt());
-      selectionFunction.run(textSelection);
+      selectionFunction.accept(textSelection);
     });
   }
 
-  public void configFindAllReferences(IEquoRunnable<Void> handler) {
-    equoEventHandler.on(namespace + "_findAllReferences", handler);
+  public void configFindAllReferences(Consumer<Void> handler) {
+    equoEventHandler.on(namespace + "_findAllReferences", Void.class, handler);
   }
 
   /**
    * Sets listeners for common changes.
    */
-  public void subscribeChanges(IEquoRunnable<Boolean> dirtyListener,
-      IEquoRunnable<Boolean> undoListener, IEquoRunnable<Boolean> redoListener,
-      IEquoRunnable<String> contentChangeListener) {
-    equoEventHandler.on(namespace + "_changesNotification", (JsonObject changes) -> {
-      dirtyListener.run(changes.get("isDirty").getAsBoolean());
-      undoListener.run(changes.get("canUndo").getAsBoolean());
-      redoListener.run(changes.get("canRedo").getAsBoolean());
-      contentChangeListener.run(changes.get("content").getAsString());
+  public void subscribeChanges(Consumer<Boolean> dirtyListener, Consumer<Boolean> undoListener,
+      Consumer<Boolean> redoListener, Consumer<String> contentChangeListener) {
+    equoEventHandler.on(namespace + "_changesNotification", JsonObject.class, changes -> {
+      dirtyListener.accept(changes.get("isDirty").getAsBoolean());
+      undoListener.accept(changes.get("canUndo").getAsBoolean());
+      redoListener.accept(changes.get("canRedo").getAsBoolean());
+      contentChangeListener.accept(changes.get("content").getAsString());
     });
 
     if (loaded) {
       equoEventHandler.send(namespace + "_subscribeModelChanges");
     } else {
-      addOnLoadListener((IEquoRunnable<Void>) runnable -> {
+      addOnLoadListener(runnable -> {
         equoEventHandler.send(namespace + "_subscribeModelChanges");
       });
     }
@@ -619,7 +628,7 @@ public class EquoMonacoEditor {
     if (loaded) {
       equoEventHandler.send(namespace + "_setContent", response);
     } else {
-      addOnLoadListener((IEquoRunnable<Void>) runnable -> {
+      addOnLoadListener(runnable -> {
         equoEventHandler.send(namespace + "_setContent", response);
       });
     }

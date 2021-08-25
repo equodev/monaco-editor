@@ -30,7 +30,7 @@ import com.equo.contribution.api.EquoContributionBuilder;
 import com.equo.contribution.api.resolvers.EquoGenericUrlResolver;
 
 @Component
-public class NodePackagesContribution {
+public class MonacoTestContribution {
 
 	@Reference
 	private EquoContributionBuilder builder;
@@ -41,7 +41,7 @@ public class NodePackagesContribution {
 				.withContributionName("testBundles") //
 				.withBaseHtmlResource("index.html") //
 				.withPathWithScript("", "index.bundle.js") //
-				.withUrlResolver(new EquoGenericUrlResolver(NodePackagesContribution.class.getClassLoader())) //
+				.withUrlResolver(new EquoGenericUrlResolver(MonacoTestContribution.class.getClassLoader())) //
 				.build();
 	}
 

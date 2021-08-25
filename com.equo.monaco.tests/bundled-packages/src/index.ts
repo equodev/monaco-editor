@@ -29,10 +29,11 @@ var comm: EquoComm = EquoCommService.get();
 
 comm.on('_getIsEditorCreated', () => {
     if (document.getElementsByClassName('monaco-editor').length > 0) {
-        comm.send('_doGetIsEditorCreated', {
-            created: true
-        });
+        comm.send('_doGetIsEditorCreated');
     }
 });
 
-EquoMonaco.create(document.getElementById('container')!);
+// @ts-ignore
+$(function() {
+    EquoMonaco.create(document.getElementById('container')!);
+});

@@ -59,20 +59,20 @@ public class EquoMonacoStandaloneEditor {
   }
 
   private void attendLspConfig() {
-    equoEventHandler.on("_addLspServer", (JsonObject payload) -> {
+    equoEventHandler.on("_addLspServer", JsonObject.class, payload -> {
       List<String> executionParameters =
           getListFromJsonArray(payload.getAsJsonArray("executionParameters"));
       List<String> extensions = getListFromJsonArray(payload.getAsJsonArray("extensions"));
       EquoMonacoEditor.addLspServer(executionParameters, extensions);
     });
 
-    equoEventHandler.on("_addLspWsServer", (JsonObject payload) -> {
+    equoEventHandler.on("_addLspWsServer", JsonObject.class, payload -> {
       String fullServerPath = payload.get("fullServerPath").getAsString();
       List<String> extensions = getListFromJsonArray(payload.getAsJsonArray("extensions"));
       EquoMonacoEditor.addLspWsServer(fullServerPath, extensions);
     });
 
-    equoEventHandler.on("_removeLspServer", (JsonObject payload) -> {
+    equoEventHandler.on("_removeLspServer", JsonObject.class, payload -> {
       List<String> extensions = getListFromJsonArray(payload.getAsJsonArray("extensions"));
       EquoMonacoEditor.removeLspServer(extensions);
     });
@@ -87,7 +87,7 @@ public class EquoMonacoStandaloneEditor {
   }
 
   private void attendEditorCreation() {
-    equoEventHandler.on("_createEditor", (JsonObject payload) -> {
+    equoEventHandler.on("_createEditor", JsonObject.class, payload -> {
       JsonElement jsonFilePath = payload.get("filePath");
       if (jsonFilePath != null) {
         String filePath = jsonFilePath.getAsString();

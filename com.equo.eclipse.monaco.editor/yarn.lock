@@ -23,17 +23,17 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@equo/comm@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.dev.equoplatform.com/@equo%2fcomm/-/comm-0.1.5.tgz#6efe04953e903d982c8e0a4b90bef4a7eecdc7e6"
-  integrity sha512-7ijL0TQXvh/skpY57YtIF7TDak3nZ0lxpIAztM3IW10dwmgon+L0rn3ZhmxjXYjnKU6Ea1gxhmsOk4gY4pc5VA==
+"@equo/comm@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.dev.equoplatform.com/@equo%2fcomm/-/comm-0.2.0.tgz#b4be1cd16e56d104391ce281fd2f4f924f765709"
+  integrity sha512-P+1Z1YdnrHNRbMzTSPv1C9zMRV9n3Tf7XhuerBpP6EjDoniFQtwvmosQrRrIy4E/9Ov8YqFkEM6CF5z4Sykn/g==
   dependencies:
     "@equo/service-manager" "^0.1.1"
 
 "@equo/equo-monaco-editor@file:../com.equo.monaco/equo-monaco-editor":
-  version "0.1.8"
+  version "0.1.9"
   dependencies:
-    "@equo/comm" "^0.1.5"
+    "@equo/comm" "^0.2.0"
     monaco-editor "^0.23.0"
     monaco-languageclient "^0.13.1-next.9"
     normalize-url "^5.0.0"

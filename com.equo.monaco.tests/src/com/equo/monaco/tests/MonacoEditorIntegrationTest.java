@@ -39,11 +39,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.equo.comm.api.IEquoCommService;
+import com.equo.comm.api.IEquoEventHandler;
 import com.equo.server.api.IEquoServer;
 import com.equo.testing.common.util.EquoRule;
-import com.equo.comm.api.IEquoEventHandler;
-import com.equo.comm.api.IEquoCommService;
-import com.equo.comm.api.JsonPayloadEquoRunnable;
 
 public class MonacoEditorIntegrationTest {
 
@@ -86,7 +85,7 @@ public class MonacoEditorIntegrationTest {
 	@Test
 	public void monacoEditorIsCreatedCorrectly() {
 		AtomicReference<Boolean> wasCreated = new AtomicReference<>(false);
-		handler.on("_doGetIsEditorCreated", (JsonPayloadEquoRunnable) payload -> {
+		handler.on("_doGetIsEditorCreated", Void.class, payload -> {
 			wasCreated.set(true);
 		});
 		await().timeout(ONE_MINUTE).untilAsserted(() -> {

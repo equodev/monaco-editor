@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.function.Consumer;
 
 import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.filebuffers.IFileBuffer;
@@ -84,7 +85,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.equo.comm.api.IEquoRunnable;
 import com.equo.eclipse.monaco.lsp.EclipseLspProxy;
 import com.equo.monaco.EquoMonacoEditor;
 import com.equo.monaco.lsp.LspProxy;
@@ -462,20 +462,20 @@ public class MonacoEditorPart extends AbstractTextEditor {
   }
 
   private void editorConfigs() {
-    IEquoRunnable<Boolean> dirtyListener = (isDirty) -> {
+    Consumer<Boolean> dirtyListener = isDirty -> {
       this.isDirty = isDirty;
       Display.getDefault().asyncExec(() -> {
         firePropertyChange(PROP_DIRTY);
       });
     };
 
-    IEquoRunnable<Boolean> redoListener = (canRedo) -> {
+    Consumer<Boolean> redoListener = canRedo -> {
       redoAction.setEnabled(canRedo);
     };
-    IEquoRunnable<Boolean> undoListener = (canUndo) -> {
+    Consumer<Boolean> undoListener = canUndo -> {
       undoAction.setEnabled(canUndo);
     };
-    IEquoRunnable<String> contentChangeListener = (content) -> {
+    Consumer<String> contentChangeListener = content -> {
       if (ownDocument != null) {
         reload = false;
         ownDocument.set(content);

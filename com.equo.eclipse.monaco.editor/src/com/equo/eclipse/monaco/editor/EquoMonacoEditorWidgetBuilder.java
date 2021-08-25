@@ -59,6 +59,8 @@ import com.google.gson.JsonObject;
 @Component(service = EquoMonacoEditorWidgetBuilder.class, scope = ServiceScope.PROTOTYPE)
 public class EquoMonacoEditorWidgetBuilder extends AbstractEquoMonacoEditorBuilder {
 
+  private static final String EDITOR_PLUGIN_ID = "com.equo.eclipse.monaco.editor.EquoEditor";
+
   @Reference
   private IEquoEventHandler equoEventHandler;
 
@@ -129,9 +131,14 @@ public class EquoMonacoEditorWidgetBuilder extends AbstractEquoMonacoEditorBuild
     return editor;
   }
 
+  /**
+   * Sets an event to create a new editor on demand.
+   */
   @Activate
   public void activate() {
-    equoEventHandler.on("_openCodeEditor", (JsonObject payload) -> createNew(payload));
+    equoEventHandler.on("_openCodeEditor", JsonObject.class, payload -> {
+      createNew(payload);
+    });
   }
 
   private void createNew(JsonObject payload) {
@@ -147,8 +154,7 @@ public class EquoMonacoEditorWidgetBuilder extends AbstractEquoMonacoEditorBuild
         IFileStore fileStore = EFS.getLocalFileSystem().getStore(fileToOpen.toURI());
         IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
         try {
-          IEditorPart openEditor = IDE.openEditor(page, fileStore.toURI(),
-              "com.equo.eclipse.monaco.editor.EquoEditor", true);
+          IEditorPart openEditor = IDE.openEditor(page, fileStore.toURI(), EDITOR_PLUGIN_ID, true);
           if (openEditor instanceof ITextEditor) {
             ITextEditor textEditor = (ITextEditor) openEditor;
             IDocument document =

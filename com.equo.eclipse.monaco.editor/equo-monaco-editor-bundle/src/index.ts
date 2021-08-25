@@ -22,4 +22,8 @@
 
 // @ts-ignore
 import { EquoMonaco } from '@equo/equo-monaco-editor';
-EquoMonaco.create(document.getElementById('container')!);
+
+// @ts-ignore
+$(function() {
+    EquoMonaco.create(document.getElementById('container')!);
+});
