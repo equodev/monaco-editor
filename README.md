@@ -18,8 +18,7 @@ https://dl.equoplatform.com/monaco-editor/1.0/repo/
 
 ## Usage
 
-To see how to use the [Equo Editor](https://www.equoplatform.com/request-a-demo) please click [here](https://docs.equoplatform.com/framework/1.1.x/components/equo-editor.html#_how_to_use_equo_editor).
-
+To see how to use the [Equo Editor](https://www.equoplatform.com/request-a-demo) please click [here](https://docs.equo.dev/sdk/1.0.x/components/equo-editor.html#_how_to_use_equo_editor)
 
 ## Contributing
 
